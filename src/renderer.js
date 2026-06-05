@@ -274,7 +274,9 @@ function openConnector(id) {
   document.querySelectorAll('.app-conn-chip').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.querySelectorAll('.link-card').forEach(el => el.classList.toggle('active', el.dataset.id === id));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('tab--active', t.dataset.id === id));
-  sendLayout();
+
+  // Delay für DOM-Repaint BEVOR sendLayout die neuen Bounds berechnet
+  setTimeout(sendLayout, 50);
 }
 
 function closeConnector(id) {
