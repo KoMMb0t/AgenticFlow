@@ -9,16 +9,17 @@
 </head>
 <body>
 
-<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<!-- ══ HEADER (nur KI-Agenten Reiter) ═════════════════════════ -->
 <header id="header">
   <div class="h-left">
-    <button class="toggle-btn" id="left-toggle">
+    <button class="toggle-btn" id="left-toggle" title="Linke Sidebar">
       <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".4"/><rect x="7" y="1" width="6" height="12" rx="1" fill="currentColor"/></svg>
     </button>
     <span class="logo">⚡ AgenticFlow</span>
   </div>
 
-  <nav id="center-tabs">
+  <!-- KI-Agenten Tabs -->
+  <nav id="ai-tabs">
     <button class="tab tab--active" id="tab-home" data-id="home">
       <span>🏠</span><span class="tl">Projekte</span>
     </button>
@@ -26,114 +27,125 @@
 
   <div class="h-right">
     <button class="hbtn" id="btn-settings" title="Einstellungen">⚙</button>
-    <button class="toggle-btn" id="right-toggle">
+    <button class="toggle-btn" id="right-toggle" title="Rechte Sidebar">
       <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="6" height="12" rx="1" fill="currentColor"/><rect x="9" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".4"/></svg>
     </button>
   </div>
 </header>
 
-<!-- ══ LAYOUT ═══════════════════════════════════════════════ -->
+<!-- ══ LAYOUT ═════════════════════════════════════════════════ -->
 <div id="layout">
 
-  <!-- ── LEFT SIDEBAR ────────────────────────────────────── -->
+  <!-- ── LEFT SIDEBAR (Apps + Netzwerk) ────────────────────── -->
   <aside id="left-panel">
-
-    <!-- Scrollbarer Bereich: Konnektoren + Agenten -->
     <div id="left-inner">
 
-      <!-- ── KONNEKTOREN (Clouds + Dienste zusammen) ──────── -->
-      <div class="section">
-        <div class="sec-hdr">
-          <span class="sec-title">🔌 Konnektoren</span>
-          <button class="ico-btn" id="add-conn-left-btn" title="Konnektor hinzufügen">+</button>
+      <!-- ☁ CLOUDS ──────────────────────────────────────────── -->
+      <div class="app-section">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">☁</span>
+          <span class="app-sec-title">Clouds</span>
+          <button class="ico-btn ico-btn-sm" id="add-cloud-btn" title="Cloud hinzufügen">+</button>
         </div>
-        <div class="conn-list" id="conn-list-all">
-          <div class="empty-hint">Über + oder Chat-Footer verbinden</div>
-        </div>
+        <div class="app-list" id="clouds-list"></div>
       </div>
 
-      <div class="divider"></div>
-
-      <!-- ── KI-AGENTEN ───────────────────────────────────── -->
-      <div class="section">
-        <div class="sec-hdr"><span class="sec-title">🤖 KI-Agenten</span></div>
-        <div class="conn-list" id="agent-conn-list">
-          <div class="empty-hint">Über + oder Chat-Footer verbinden</div>
+      <!-- 📱 BROWSER ────────────────────────────────────────── -->
+      <div class="app-section">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">📱</span>
+          <span class="app-sec-title">Browser</span>
+          <button class="ico-btn ico-btn-sm" id="add-browser-btn" title="Browser hinzufügen">+</button>
         </div>
+        <div class="app-list" id="browser-list"></div>
+      </div>
+
+      <!-- 💬 CHANNELS ───────────────────────────────────────── -->
+      <div class="app-section">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">💬</span>
+          <span class="app-sec-title">Channels</span>
+          <button class="ico-btn ico-btn-sm" id="add-channel-btn" title="Channel hinzufügen">+</button>
+        </div>
+        <div class="app-list" id="channels-list"></div>
+      </div>
+
+      <!-- 🔧 SERVICES ───────────────────────────────────────── -->
+      <div class="app-section">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">🔧</span>
+          <span class="app-sec-title">Services</span>
+          <button class="ico-btn ico-btn-sm" id="add-service-btn" title="Service hinzufügen">+</button>
+        </div>
+        <div class="app-list" id="services-list"></div>
+      </div>
+
+      <!-- ⭐ FAVORITES ──────────────────────────────────────── -->
+      <div class="app-section" id="favorites-section" style="display:none">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">⭐</span>
+          <span class="app-sec-title">Favorites</span>
+        </div>
+        <div class="app-list" id="favorites-list"></div>
+      </div>
+
+      <!-- 🕐 RECENT ─────────────────────────────────────────── -->
+      <div class="app-section" id="recent-section" style="display:none">
+        <div class="app-sec-header">
+          <span class="app-sec-icon">🕐</span>
+          <span class="app-sec-title">Recent</span>
+        </div>
+        <div class="app-list" id="recent-list"></div>
       </div>
 
     </div>
 
-    <!-- ── LOKALES NETZWERK (fixiert unten) ─────────────────── -->
-    <div id="local-panel">
-      <div class="local-header">
-        <span class="sec-title">📡 Lokales Netzwerk</span>
-        <button class="ico-btn" id="btn-scan-network" title="Netzwerk scannen">↺</button>
+    <!-- ── NETZWERK PANEL (unten, fixiert) ───────────────── -->
+    <div id="network-panel">
+      <div class="network-header">
+        <span>📡 Netzwerk</span>
+        <button class="ico-btn ico-btn-sm" id="btn-network-scan" title="Scannen">↺</button>
       </div>
 
-      <!-- WLAN -->
-      <div class="local-section">
-        <div class="local-sec-title">📶 WLAN</div>
-        <div id="wifi-info" class="local-item">
-          <span class="local-dot dot-checking"></span>
-          <span id="wifi-name">Wird geladen…</span>
-          <span id="wifi-strength" class="local-meta"></span>
+      <!-- WLAN Status -->
+      <div class="network-section">
+        <div class="network-label">📶 WiFi</div>
+        <div id="wifi-status" class="network-item">
+          <span class="dot dot-checking"></span>
+          <span>Wird geladen…</span>
         </div>
       </div>
 
-      <!-- Netzwerkgeräte -->
-      <div class="local-section">
-        <div class="local-sec-title">🖥 Geräte im Netzwerk</div>
-        <div id="network-devices" class="local-list">
-          <div class="empty-hint" style="padding:4px 8px">Scannen…</div>
-        </div>
+      <!-- Network Devices -->
+      <div class="network-section">
+        <div class="network-label">🖥 Geräte</div>
+        <div id="network-devices" class="network-list"></div>
       </div>
 
-      <!-- BLE / Bluetooth Geräte -->
-      <div class="local-section">
-        <div class="local-sec-title-row">
-          <span class="local-sec-title">🔵 BLE &amp; Bluetooth</span>
-          <div class="ble-header-actions">
-            <button class="ble-mini-btn" id="btn-ble-scan" title="BLE scannen">⟳</button>
-            <button class="ble-mini-btn" id="btn-ble-login" title="Login mit Gerät">🔓</button>
+      <!-- BLE -->
+      <div class="network-section">
+        <div class="network-header-row">
+          <span class="network-label">🔵 BLE</span>
+          <div class="network-actions">
+            <button class="ico-btn ico-btn-sm" id="btn-ble-scan" title="BLE-Scan">⟳</button>
+            <button class="ico-btn ico-btn-sm" id="btn-ble-pair" title="Pairing">🔓</button>
           </div>
         </div>
-
-        <!-- Adapter Status -->
-        <div id="ble-adapter-row" class="local-item">
-          <span class="local-dot dot-checking"></span>
-          <span id="ble-adapter-name">BT-Adapter</span>
-          <button class="ble-power-btn" id="ble-power-btn" title="Bluetooth ein/aus">⏻</button>
-        </div>
-
-        <!-- Geräteliste -->
-        <div id="ble-devices" class="local-list">
-          <div class="empty-hint" style="padding:4px 14px">Scannen…</div>
-        </div>
+        <div id="ble-devices" class="network-list"></div>
       </div>
 
-    </div>
-
-    <!-- BLE Login Panel (Slide-in) -->
-    <div id="ble-login-panel" style="display:none">
-      <div class="blp-header">
-        <span>🔓 BLE Login</span>
-        <button id="blp-close">✕</button>
-      </div>
-      <div class="blp-body">
-        <p class="blp-hint">Gerät als Login-Schlüssel pairen — wenn es in Reichweite ist, wirst du automatisch eingeloggt.</p>
-        <div class="blp-section-title">Gekoppelte Login-Geräte</div>
-        <div id="blp-paired-list"></div>
-        <div class="blp-section-title" style="margin-top:10px">Verfügbare Geräte</div>
-        <div id="blp-available-list"></div>
+      <!-- Network Access -->
+      <div class="network-section">
+        <div class="network-label">🔐 Netzwerkzugriff</div>
+        <button class="network-access-toggle" id="btn-network-access">
+          <span class="toggle-dot"></span>
+          <span>Freischalten</span>
+        </button>
       </div>
     </div>
-
   </aside>
 
-  </aside>
-
-  <!-- ── CENTER ──────────────────────────────────────────── -->
+  <!-- ── CENTER PANEL (Projekt mit Full Network Access) ───── -->
   <main id="center-panel">
 
     <!-- HOME VIEW -->
@@ -147,20 +159,13 @@
         <div class="hw-glow"></div>
         <div class="hw-icon">⚡</div>
         <h2>Willkommen bei AgenticFlow</h2>
-        <p>Erstelle ein Projekt, verbinde Apps über den Chat-Footer und lass den Architect-Agenten mit Claude API für dich arbeiten.</p>
-        <div class="hw-chips">
-          <span class="chip">🏗 Architect delegiert</span>
-          <span class="chip">🤖 Agenten arbeiten</span>
-          <span class="chip">☁ Clouds verbunden</span>
-          <span class="chip">🧠 Perfect Memory</span>
-        </div>
+        <p>Erstelle ein Projekt und nutze volle Netzwerkzugriff für deine Agenten.</p>
         <button class="btn-primary" id="btn-new-project-2">+ Erstes Projekt anlegen</button>
       </div>
     </div>
 
     <!-- PROJECT VIEW -->
     <div id="view-project" style="display:none">
-
       <div id="project-topbar">
         <div class="ptb-left">
           <button class="back-btn" id="btn-back-home">← Projekte</button>
@@ -197,255 +202,77 @@
         </div>
       </div>
 
-      <div id="proj-messages" class="msg-area"></div>
-
-      <!-- ── CHAT FOOTER: Apps verbinden + Eingabe ── -->
-      <div id="chat-footer">
-        <div id="app-chips-bar" class="app-chips-bar">
-          <span class="chips-label">Verbunden:</span>
-          <div id="app-chips" class="app-chips-list"></div>
-          <button class="add-conn-btn" id="btn-add-connection">＋ Verbinden</button>
-        </div>
-        <div id="proj-input-row">
-          <textarea id="proj-input" placeholder="Aufgabe an Architect… (Enter = Senden, Shift+Enter = neue Zeile)" rows="1"></textarea>
-          <button id="proj-send-btn">
-            <svg width="15" height="15" viewBox="0 0 15 15"><path d="M13 7.5L2 2l2.5 5.5L2 13l11-5.5z" fill="currentColor"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- BrowserView-Overlay-Bar -->
-      <div id="conn-overlay-bar" style="display:none">
-        <div class="cob-info">
-          <span id="cob-icon"></span><span id="cob-name"></span>
-          <span id="cob-label" class="badge"></span>
-        </div>
-        <div class="cob-actions">
-          <button class="svc-btn" id="cob-reload">↺</button>
-          <button class="svc-btn" id="cob-logout">⏻</button>
-          <button class="svc-btn svc-close" id="cob-close">✕ Zurück</button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- STANDALONE CHAT -->
-    <div id="view-chat" style="display:none">
-      <div id="chat-messages" class="msg-area">
-        <div class="chat-welcome" id="chat-welcome">
-          <div class="hw-glow"></div>
-          <div class="hw-icon">⚡</div>
-          <h2>AgenticFlow Chat</h2>
-          <p>Direkt chatten. Apps unten verbinden — sie erscheinen als Links rechts.</p>
-        </div>
-      </div>
-      <div id="chat-footer-sa">
-        <div id="app-chips-bar-sa" class="app-chips-bar">
-          <span class="chips-label">Verbunden:</span>
-          <div id="app-chips-sa" class="app-chips-list"></div>
-          <button class="add-conn-btn" id="btn-add-conn-sa">＋ Verbinden</button>
-        </div>
-        <div id="chat-input-row">
-          <select id="provider-select" class="model-sel-sm" title="KI-Anbieter wählen">
-            <option value="claude">⚗ Claude API</option>
-            <option value="openai">🤖 OpenAI API</option>
-            <option value="gemini">✦ Gemini API</option>
-            <option value="browser">🌐 Browser-Agent</option>
-          </select>
-          <select id="model-select" class="model-sel-sm">
-            <option value="claude-sonnet-4-6">⚗ Sonnet 4.6</option>
-            <option value="claude-opus-4-8">🏗 Opus 4.8</option>
-            <option value="claude-haiku-4-5-20251001">⚡ Haiku 4.5</option>
-          </select>
-          <textarea id="chat-input" placeholder="Nachricht… (Enter = Senden)" rows="1"></textarea>
-          <button id="send-btn">
-            <svg width="15" height="15" viewBox="0 0 15 15"><path d="M13 7.5L2 2l2.5 5.5L2 13l11-5.5z" fill="currentColor"/></svg>
-          </button>
+      <div id="chat-view">
+        <div id="messages"></div>
+        <div id="chat-input-area">
+          <div class="input-toolbar">
+            <button class="tool-btn" id="btn-mic" title="Mikrofon">🎤</button>
+            <button class="tool-btn" id="btn-voice" title="Sprachassistent">🎙️</button>
+          </div>
+          <textarea id="chat-input" placeholder="Aufgabe eingeben..." rows="2"></textarea>
+          <button id="btn-send">➤</button>
         </div>
       </div>
     </div>
-
   </main>
 
-  <!-- ── RIGHT PANEL ─────────────────────────────────────── -->
+  <!-- ── RIGHT SIDEBAR (Memory + Buttons) ──────────────────── -->
   <aside id="right-panel">
 
-    <div id="right-tabs">
-      <button class="rtab rtab--active" data-tab="links">🔗 Links</button>
-      <button class="rtab"              data-tab="memory">🧠 Memory</button>
-    </div>
-
-    <!-- LINKS: Verbundene Apps öffnen -->
-    <div id="tab-links-view">
-      <div id="link-list-wrap">
-        <div id="link-list"></div>
-        <div id="link-empty" class="link-empty">
-          <div style="font-size:2.2rem;margin-bottom:8px">🔗</div>
-          <p>Verbinde Apps über den<br/>Chat-Footer — sie erscheinen hier als Links</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- MEMORY -->
-    <div id="tab-memory-view" style="display:none">
-      <div id="memory-header">
+    <!-- PERFECT MEMORY (oben) -->
+    <div id="memory-panel">
+      <div class="memory-header">
         <span>🧠 Perfect Memory</span>
-        <button class="ico-btn" id="btn-add-memory">+</button>
+        <button class="ico-btn ico-btn-sm" id="btn-memory-add">+</button>
       </div>
-      <div id="memory-chat-area">
-        <div id="memory-messages">
-          <div class="memory-welcome">
-            <strong>Memory Agent</strong> — ich erinnere mich an alles.<br/>
-            Schreib <em>"Speichere: …"</em> oder stell mir eine Frage.
-          </div>
-        </div>
-        <div id="memory-input-wrap">
-          <textarea id="memory-input" placeholder="Frag Memory oder speichere etwas…" rows="1"></textarea>
-          <button id="memory-send-btn">➤</button>
+
+      <div id="memory-chat">
+        <div id="memory-messages"></div>
+        <div id="memory-input-area">
+          <input type="text" id="memory-input" placeholder="Frage an Memory…">
+          <button id="btn-memory-send">↩</button>
         </div>
       </div>
-      <div id="memory-list-section">
-        <div class="mem-list-hdr">
-          <span>Gespeichert</span><span id="mem-count" class="badge">0</span>
-        </div>
-        <div id="memory-entries"></div>
-      </div>
+    </div>
+
+    <!-- BUTTONS (unten) -->
+    <div id="buttons-panel">
+      <button class="action-btn" id="btn-action-1" title="Reserved">💾</button>
+      <button class="action-btn" id="btn-action-2" title="Reserved">📊</button>
+      <button class="action-btn" id="btn-action-3" title="Reserved">🔧</button>
     </div>
 
   </aside>
+
 </div>
 
-<!-- ══ CONNECT MODAL ════════════════════════════════════════ -->
-<div id="connect-modal-overlay" style="display:none">
-  <div id="connect-modal">
+<!-- BLE Pairing Modal -->
+<div id="ble-modal" class="modal" style="display:none">
+  <div class="modal-content">
     <div class="modal-header">
-      <h2 id="cm-title">App / Cloud verbinden</h2>
-      <button id="cm-close">✕</button>
+      <span>🔓 BLE Pairing</span>
+      <button class="modal-close" id="ble-modal-close">✕</button>
     </div>
-    <div class="modal-body">
-      <div id="cm-step-1">
-        <div id="cm-filter" class="cm-filter"></div>
-        <div id="cm-grid"   class="tpl-grid"></div>
-      </div>
-      <div id="cm-step-2" style="display:none">
-        <div id="cm-preview" class="form-preview"></div>
-        <label class="form-label">
-          Account-Bezeichnung <span class="form-hint">(z.B. "Privat", "Arbeit")</span>
-          <input type="text" id="cm-label" class="form-input" placeholder="Mein Account…" autocomplete="off"/>
-        </label>
-        <div id="cm-url-group" style="display:none">
-          <label class="form-label">URL
-            <input type="url" id="cm-url" class="form-input" placeholder="https://…"/>
-          </label>
-        </div>
-        <div class="form-actions">
-          <button class="btn-sec" id="cm-back">← Zurück</button>
-          <button class="btn-primary" id="cm-create">↗ Verbinden</button>
-        </div>
-      </div>
-    </div>
+    <div id="ble-modal-body"></div>
   </div>
 </div>
 
-<!-- ══ PROJEKT MODAL ════════════════════════════════════════ -->
-<div id="proj-modal-overlay" style="display:none">
-  <div id="proj-modal">
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal" style="display:none">
+  <div class="modal-content">
     <div class="modal-header">
-      <h2>Neues Projekt</h2><button id="pm-close">✕</button>
+      <span>⚙ Einstellungen</span>
+      <button class="modal-close" id="settings-modal-close">✕</button>
     </div>
-    <div class="modal-body">
-      <label class="form-label">Projektname
-        <input type="text" id="pm-name" class="form-input" placeholder="Mein Projekt…"/></label>
-      <label class="form-label">Beschreibung
-        <textarea id="pm-desc" class="form-input form-textarea" placeholder="Worum geht es?"></textarea></label>
-      <label class="form-label">Architect-Modell
-        <select id="pm-model" class="form-input">
-          <option value="claude-opus-4-8">Claude Opus 4.8</option>
-          <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
-          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
-        </select></label>
-      <div class="form-actions">
-        <button class="btn-sec" id="pm-cancel">Abbrechen</button>
-        <button class="btn-primary" id="pm-create">🏗 Erstellen</button>
-      </div>
-    </div>
+    <div id="settings-modal-body"></div>
   </div>
 </div>
 
-<!-- ══ SETTINGS ═════════════════════════════════════════════ -->
-<div id="settings-overlay" style="display:none">
-  <div id="settings-modal">
-    <div class="modal-header"><h2>⚙ Einstellungen</h2><button id="settings-close">✕</button></div>
-    <div class="modal-body">
-      <div class="settings-section">
-        <div class="settings-title">🔑 Claude API-Key</div>
-        <label class="form-label">Anthropic API-Key
-          <div class="api-row">
-            <input type="password" id="inp-claude-key" class="form-input" placeholder="sk-ant-…"/>
-            <button class="btn-primary" id="save-claude-key">Speichern</button>
-          </div>
-        </label>
-        <div id="api-key-status" class="api-status"></div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">📱 Verbundene Dienste</div>
-        <div id="settings-conn-list"></div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">ℹ Info</div>
-        <div class="settings-info">AgenticFlow v0.2.0 — alle Daten lokal gespeichert.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ API KEY TOOL ══════════════════════════════════════════ -->
-<!-- Floating button — fixed bottom-right of right sidebar -->
-<button id="apikey-fab" title="API Keys — direkte Links zu allen Diensten">🔑</button>
-
-<!-- Panel -->
-<div id="apikey-panel" style="display:none">
-  <div class="akp-header">
-    <span>🔑 API Keys</span>
-    <button id="apikey-panel-close">✕</button>
-  </div>
-  <div class="akp-search-wrap">
-    <input type="text" id="apikey-search" placeholder="Dienst suchen…" autocomplete="off"/>
-  </div>
-  <div id="apikey-list" class="akp-list"></div>
-</div>
-
-<!-- ══ KEY EINFÜGEN (Teilen-Button) ══════════════════════════ -->
-<!-- Keys werden NUR lokal gespeichert (electron-store) — nie im Repo -->
-<button id="keyshare-fab" title="API-Key einfügen — wird nur lokal gespeichert">📤</button>
-
-<div id="keyshare-panel" style="display:none">
-  <div class="akp-header">
-    <span>📤 Key einfügen</span>
-    <button id="keyshare-close">✕</button>
-  </div>
-  <div class="ksp-body">
-    <label class="form-label">Dienst
-      <select id="keyshare-service" class="form-input"></select>
-    </label>
-    <label class="form-label">API-Key
-      <input type="password" id="keyshare-input" class="form-input" placeholder="Key hier einfügen…" autocomplete="off"/>
-    </label>
-    <button class="btn-primary" id="keyshare-save">Lokal speichern</button>
-    <div id="keyshare-status" class="api-status"></div>
-    <div class="ksp-hint">🔒 Wird nur auf diesem Gerät gespeichert — landet nie im Repository.</div>
-  </div>
-</div>
-
-<!-- Context Menu -->
-<div id="ctx-menu" style="display:none">
-  <button class="ctx-item" id="ctx-open">↗  Öffnen</button>
-  <button class="ctx-item" id="ctx-reload">↺  Neu laden</button>
-  <button class="ctx-item" id="ctx-logout">⏻  Abmelden</button>
-  <div class="ctx-div"></div>
-  <button class="ctx-item ctx-danger" id="ctx-remove">✕  Entfernen</button>
-</div>
-
+<script src="renderer-utils.js"></script>
+<script src="renderer-accounts.js"></script>
+<script src="renderer-sidebar.js"></script>
+<script src="renderer-center.js"></script>
+<script src="renderer-memory.js"></script>
 <script src="renderer.js"></script>
 </body>
 </html>
