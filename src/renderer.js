@@ -728,6 +728,263 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Utils ─────────────────────────────────────────────────────
+// ── API KEY TOOL ──────────────────────────────────────────────
+
+const API_KEY_SERVICES = [
+  // ── KI & Agenten ──────────────────────────────────────────
+  { section: '🤖 KI-Agenten & APIs' },
+  {
+    name: 'Anthropic (Claude)',
+    icon: '⚗', color: '#cc785c',
+    desc: 'Claude Opus, Sonnet, Haiku — direkt zur Key-Seite',
+    url:  'https://console.anthropic.com/settings/keys',
+    scope: 'API Keys verwalten, Vollzugriff'
+  },
+  {
+    name: 'OpenAI (ChatGPT)',
+    icon: '🤖', color: '#10a37f',
+    desc: 'GPT-4o, o1 — API Keys erstellen',
+    url:  'https://platform.openai.com/api-keys',
+    scope: 'Neuen Key erstellen → Berechtigungen: All'
+  },
+  {
+    name: 'Google AI (Gemini)',
+    icon: '✦', color: '#4285f4',
+    desc: 'Gemini Pro / Flash API Key',
+    url:  'https://aistudio.google.com/app/apikey',
+    scope: 'API Key erstellen'
+  },
+  {
+    name: 'Perplexity AI',
+    icon: '◎', color: '#20808d',
+    desc: 'pplx-api Key für Suche + Chat',
+    url:  'https://www.perplexity.ai/settings/api',
+    scope: 'Generate → Full Access'
+  },
+  {
+    name: 'Mistral AI',
+    icon: 'M', color: '#ff7000',
+    desc: 'Mistral Large / Small API',
+    url:  'https://console.mistral.ai/api-keys/',
+    scope: 'Create new key'
+  },
+  {
+    name: 'Groq (schnelle Inferenz)',
+    icon: '⚡', color: '#f55036',
+    desc: 'Llama 3, Mixtral blitzschnell',
+    url:  'https://console.groq.com/keys',
+    scope: 'Create API Key'
+  },
+  {
+    name: 'Cohere',
+    icon: 'C', color: '#39594d',
+    desc: 'Command R+ API',
+    url:  'https://dashboard.cohere.com/api-keys',
+    scope: 'Default: read+write'
+  },
+
+  // ── Cloud-Speicher ─────────────────────────────────────────
+  { section: '☁ Cloud-Speicher' },
+  {
+    name: 'Google Drive (OAuth)',
+    icon: '📁', color: '#0f9d58',
+    desc: 'Google Cloud Console → Drive API aktivieren',
+    url:  'https://console.cloud.google.com/apis/credentials',
+    scope: 'OAuth 2.0 Client-ID → Typ: Desktop'
+  },
+  {
+    name: 'Dropbox',
+    icon: '📦', color: '#0061ff',
+    desc: 'Dropbox App erstellen → Token generieren',
+    url:  'https://www.dropbox.com/developers/apps',
+    scope: 'Create App → Full Dropbox → Generate Token'
+  },
+  {
+    name: 'MEGA',
+    icon: '🔒', color: '#d9272e',
+    desc: 'MEGAcmd oder MEGA-SDK verwenden',
+    url:  'https://mega.io/developers',
+    scope: 'API-Schlüssel via MEGAcmd'
+  },
+  {
+    name: 'OneDrive (Microsoft)',
+    icon: '☁', color: '#0078d4',
+    desc: 'Azure App Registration → Microsoft Graph',
+    url:  'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps',
+    scope: 'New registration → Files.ReadWrite.All'
+  },
+
+  // ── Entwicklung ────────────────────────────────────────────
+  { section: '⚡ Entwicklung & Tools' },
+  {
+    name: 'GitHub',
+    icon: '⚡', color: '#58a6ff',
+    desc: 'Personal Access Token (Classic) mit repo-Scope',
+    url:  'https://github.com/settings/tokens/new',
+    scope: 'Scopes: repo, delete_repo, workflow'
+  },
+  {
+    name: 'GitHub Fine-Grained',
+    icon: '⚡', color: '#3d8bff',
+    desc: 'Granulare Rechte pro Repository',
+    url:  'https://github.com/settings/personal-access-tokens/new',
+    scope: 'Repository access → Contents: Read & Write'
+  },
+  {
+    name: 'Notion',
+    icon: 'N', color: '#ffffff',
+    desc: 'Integration erstellen → Internal token',
+    url:  'https://www.notion.so/my-integrations',
+    scope: 'New integration → Full workspace access'
+  },
+  {
+    name: 'Slack',
+    icon: 'S', color: '#4a154b',
+    desc: 'Bot Token für Workspace-Zugriff',
+    url:  'https://api.slack.com/apps',
+    scope: 'Create App → OAuth → xoxb Token'
+  },
+
+  // ── Kommunikation ──────────────────────────────────────────
+  { section: '💬 Kommunikation' },
+  {
+    name: 'Telegram Bot',
+    icon: 'T', color: '#0088cc',
+    desc: 'BotFather → /newbot → Token erhalten',
+    url:  'https://t.me/BotFather',
+    scope: '/newbot → Token kopieren'
+  },
+  {
+    name: 'Discord',
+    icon: 'D', color: '#5865f2',
+    desc: 'Bot-Token im Developer Portal',
+    url:  'https://discord.com/developers/applications',
+    scope: 'New Application → Bot → Reset Token'
+  },
+  {
+    name: 'Twilio (SMS/Voice)',
+    icon: '📱', color: '#f22f46',
+    desc: 'Account SID + Auth Token',
+    url:  'https://console.twilio.com/',
+    scope: 'Dashboard → Account Info'
+  },
+
+  // ── Sonstige ───────────────────────────────────────────────
+  { section: '🔧 Sonstige Dienste' },
+  {
+    name: 'Hugging Face',
+    icon: '🤗', color: '#ff9d00',
+    desc: 'Access Token für Models & Inference API',
+    url:  'https://huggingface.co/settings/tokens',
+    scope: 'New token → Type: Write (für eigene Repos)'
+  },
+  {
+    name: 'Replicate',
+    icon: '🔄', color: '#6b7280',
+    desc: 'API Token für Open-Source-Modelle',
+    url:  'https://replicate.com/account/api-tokens',
+    scope: 'Create token'
+  },
+  {
+    name: 'ElevenLabs (TTS)',
+    icon: '🎙', color: '#9b5de5',
+    desc: 'Text-to-Speech API Key',
+    url:  'https://elevenlabs.io/app/settings/api-keys',
+    scope: 'Create API Key → Creator oder höher'
+  },
+  {
+    name: 'Serper (Google Suche)',
+    icon: '🔍', color: '#ea4335',
+    desc: 'Google Search API für Agenten',
+    url:  'https://serper.dev/api-key',
+    scope: 'API Key kopieren'
+  },
+];
+
+function initApiKeyTool() {
+  const fab   = $('apikey-fab');
+  const panel = $('apikey-panel');
+  const search= $('apikey-search');
+
+  fab.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) {
+      renderApiKeyList('');
+      setTimeout(() => search.focus(), 80);
+    }
+  });
+
+  $('apikey-panel-close').addEventListener('click', e => {
+    e.stopPropagation();
+    panel.style.display = 'none';
+  });
+
+  search.addEventListener('input', () => renderApiKeyList(search.value.trim().toLowerCase()));
+
+  // Close when clicking outside
+  document.addEventListener('click', e => {
+    if (!panel.contains(e.target) && e.target !== fab)
+      panel.style.display = 'none';
+  });
+
+  renderApiKeyList('');
+}
+
+function renderApiKeyList(query) {
+  const list = $('apikey-list');
+  list.innerHTML = '';
+
+  let currentSection = null;
+
+  for (const entry of API_KEY_SERVICES) {
+    if (entry.section) {
+      currentSection = entry.section;
+      continue;
+    }
+
+    // Filter by search query
+    if (query && !entry.name.toLowerCase().includes(query) && !entry.desc.toLowerCase().includes(query))
+      continue;
+
+    // Section header (only if first matching item in section)
+    if (currentSection) {
+      const hdr = document.createElement('div');
+      hdr.className = 'akp-section-title';
+      hdr.textContent = currentSection;
+      list.appendChild(hdr);
+      currentSection = null; // only show once per section
+    }
+
+    const item = document.createElement('div');
+    item.className = 'akp-item';
+    item.title = entry.scope;
+    item.innerHTML = `
+      <div class="akp-icon" style="background:${entry.color}20;color:${entry.color}">${entry.icon}</div>
+      <div class="akp-info">
+        <div class="akp-name">${esc(entry.name)}</div>
+        <div class="akp-desc">${esc(entry.desc)}</div>
+      </div>
+      <button class="akp-go">↗ Öffnen</button>`;
+
+    item.querySelector('.akp-go').addEventListener('click', e => {
+      e.stopPropagation();
+      window.api.openExternal(entry.url);
+    });
+    item.addEventListener('click', () => window.api.openExternal(entry.url));
+
+    list.appendChild(item);
+  }
+
+  if (!list.children.length) {
+    list.innerHTML = `<div class="empty-hint">Kein Dienst gefunden für "${esc(query)}"</div>`;
+  }
+}
+
+// Init after DOM is ready
+initApiKeyTool();
+
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 function autoResize(e) { e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'; }
 function agentLabel(a) { return {architect:'Architect',researcher:'Researcher',coder:'Coder',writer:'Writer',analyst:'Analyst',memory:'Memory'}[a]||a; }

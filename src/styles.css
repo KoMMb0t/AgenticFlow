@@ -548,6 +548,112 @@ html, body {
 .ctx-danger:hover { background: rgba(224,85,85,.12); }
 .ctx-div { height: 1px; background: var(--bd); margin: 4px 0; }
 
+/* ── API KEY TOOL ────────────────────────────────────────── */
+#apikey-fab {
+  position: fixed;
+  /* sit just above the bottom edge of the right panel */
+  bottom: 14px;
+  right: 14px;
+  z-index: 300;
+
+  width: 42px; height: 42px;
+  background: var(--bg-card);
+  border: 1px solid var(--bd2);
+  border-radius: 50%;
+  color: var(--txt-m);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px rgba(0,0,0,.5);
+  transition: all .18s;
+}
+#apikey-fab:hover {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 6px 22px rgba(108,99,255,.4);
+}
+
+#apikey-panel {
+  position: fixed;
+  bottom: 68px;   /* just above the FAB */
+  right: 14px;
+  z-index: 400;
+  width: 320px;
+  max-height: 540px;
+  background: var(--bg-p);
+  border: 1px solid var(--bd2);
+  border-radius: 14px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,.6);
+  animation: slideUp .18s ease;
+}
+
+.akp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--bd);
+  font-size: 13px; font-weight: 700; color: var(--txt); flex-shrink: 0;
+}
+.akp-header button {
+  width: 26px; height: 26px;
+  background: transparent; border: 1px solid var(--bd);
+  border-radius: 6px; color: var(--txt-d); font-size: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.akp-header button:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+.akp-search-wrap { padding: 10px 12px 6px; flex-shrink: 0; }
+#apikey-search {
+  width: 100%; height: 32px; padding: 0 10px;
+  background: var(--bg-card); border: 1px solid var(--bd2);
+  border-radius: 7px; color: var(--txt); font-size: 12px; font-family: inherit;
+  transition: border-color .15s;
+}
+#apikey-search:focus { outline: none; border-color: var(--acc); }
+#apikey-search::placeholder { color: var(--txt-d); }
+
+.akp-list {
+  flex: 1; overflow-y: auto; padding: 6px 10px 10px;
+}
+.akp-list::-webkit-scrollbar { width: 3px; }
+.akp-list::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 2px; }
+
+.akp-section-title {
+  font-size: 10px; font-weight: 700; color: var(--txt-d);
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 8px 4px 4px;
+}
+
+.akp-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  background: var(--bg-card); border: 1px solid var(--bd);
+  border-radius: 9px; margin-bottom: 5px;
+  cursor: pointer; transition: all .15s;
+  position: relative;
+}
+.akp-item:hover { background: var(--bg-h); border-color: var(--bd2); transform: translateX(2px); }
+
+.akp-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700;
+}
+.akp-info { flex: 1; min-width: 0; }
+.akp-name { font-size: 12px; font-weight: 600; color: var(--txt); }
+.akp-desc { font-size: 10.5px; color: var(--txt-d); margin-top: 1px; }
+.akp-go {
+  height: 26px; padding: 0 10px; flex-shrink: 0;
+  background: var(--acc); border: none; border-radius: 6px;
+  color: #fff; font-size: 11px; font-weight: 500; cursor: pointer;
+  transition: all .15s;
+}
+.akp-go:hover { background: var(--acc2); }
+
+/* ── SCROLLBARS ──────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 3px; }

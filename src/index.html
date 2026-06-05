@@ -315,6 +315,22 @@
   </div>
 </div>
 
+<!-- ══ API KEY TOOL ══════════════════════════════════════════ -->
+<!-- Floating button — fixed bottom-right of right sidebar -->
+<button id="apikey-fab" title="API Keys — direkte Links zu allen Diensten">🔑</button>
+
+<!-- Panel -->
+<div id="apikey-panel" style="display:none">
+  <div class="akp-header">
+    <span>🔑 API Keys</span>
+    <button id="apikey-panel-close">✕</button>
+  </div>
+  <div class="akp-search-wrap">
+    <input type="text" id="apikey-search" placeholder="Dienst suchen…" autocomplete="off"/>
+  </div>
+  <div id="apikey-list" class="akp-list"></div>
+</div>
+
 <!-- Context Menu -->
 <div id="ctx-menu" style="display:none">
   <button class="ctx-item" id="ctx-open">↗  Öffnen</button>

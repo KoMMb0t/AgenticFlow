@@ -66,4 +66,7 @@ contextBridge.exposeInMainWorld('api', {
   // ── Chat history ─────────────────────────────────────
   saveChatMessage:  msg => ipcRenderer.send('save-chat-message', msg),
   clearChatHistory: ()  => ipcRenderer.send('clear-chat-history'),
+
+  // ── Open URL in system browser ───────────────────────
+  openExternal: url => ipcRenderer.send('open-external', url),
 });

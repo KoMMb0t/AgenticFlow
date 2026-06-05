@@ -3,7 +3,7 @@
  * 3-Panel: Links (Clouds/Konneктoren) | Mitte (Chat/Projekt) | Rechts (Agenten/Apps)
  */
 
-const { app, BrowserWindow, BrowserView, ipcMain, session, Menu } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, shell } = require('electron');
 const path  = require('path');
 const Store = require('electron-store');
 const { registerHandlers } = require('./claude-api');
@@ -305,6 +305,9 @@ ipcMain.on('save-chat-message', (_, msg) => {
 });
 
 ipcMain.on('clear-chat-history', () => store.set('chatHistory', []));
+
+// Open URL in default system browser (for API key pages)
+ipcMain.on('open-external', (_, url) => shell.openExternal(url).catch(() => {}));
 
 // ── App lifecycle ────────────────────────────────────────────
 
