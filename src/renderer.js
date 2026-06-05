@@ -58,6 +58,9 @@ window.api.onAppReady(data => {
   else showView('home');
 
   sendLayout();
+
+  // Netzwerk-Panel nach kurzem Delay laden
+  setTimeout(loadLocalNetwork, 1200);
 });
 
 window.api.onWindowResized(sendLayout);
@@ -108,14 +111,15 @@ function showView(v) {
 
 // ── Left sidebar ──────────────────────────────────────────────
 function renderLeft() {
-  const clouds   = S.connections.filter(c => c.cat === 'cloud');
-  const services = S.connections.filter(c => c.cat === 'service' || c.cat === 'comms' || c.cat === 'dev' || c.cat === 'tool');
-  const agents   = S.connections.filter(c => c.cat === 'ai');
+  // Konnektoren = alles außer KI-Agenten zusammen
+  const conns  = S.connections.filter(c => c.cat !== 'ai');
+  const agents = S.connections.filter(c => c.cat === 'ai');
 
-  renderConnList($('cloud-list'),      clouds);
-  renderConnList($('service-list'),    services);
+  renderConnList($('conn-list-all'),   conns);
   renderConnList($('agent-conn-list'), agents);
 }
+
+// Add-button in left sidebar header — wired up in initUI() below
 
 function renderConnList(container, list) {
   if (!list.length) { container.innerHTML = `<div class="empty-hint">Unten im Chat verbinden ↓</div>`; return; }
@@ -728,6 +732,101 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Utils ─────────────────────────────────────────────────────
+// ── LOCAL NETWORK PANEL ───────────────────────────────────────
+
+async function loadLocalNetwork() {
+  loadWifi();
+  loadNetworkDevices();
+  loadBluetooth();
+}
+
+async function loadWifi() {
+  const info = await window.api.getWifiInfo().catch(() => ({ name: 'Fehler', strength: 0 }));
+  const el   = $('wifi-info');
+  if (!el) return;
+
+  const bars  = Math.round((info.strength / 100) * 4);
+  const dot   = info.strength > 0 ? 'dot-online' : 'dot-offline';
+
+  el.innerHTML = `
+    <span class="local-dot ${dot}"></span>
+    <span class="local-name">${esc(info.name)}</span>
+    <span class="wifi-bar">
+      <span class="${bars >= 1 ? 'lit' : ''}"></span>
+      <span class="${bars >= 2 ? 'lit' : ''}"></span>
+      <span class="${bars >= 3 ? 'lit' : ''}"></span>
+      <span class="${bars >= 4 ? 'lit' : ''}"></span>
+    </span>
+    <span class="local-meta">${info.strength > 0 ? info.strength + '%' : ''}</span>`;
+}
+
+async function loadNetworkDevices() {
+  const devices = await window.api.scanNetwork().catch(() => []);
+  const list    = $('network-devices');
+  if (!list) return;
+
+  if (!devices.length) {
+    list.innerHTML = `<div class="empty-hint" style="padding:4px 14px">Keine Geräte gefunden</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  // Gerät-Typ aus IP ableiten (rudimentär)
+  devices.forEach(d => {
+    const icon = guessDeviceIcon(d.ip, d.mac);
+    const el   = document.createElement('div');
+    el.className = 'local-device';
+    el.title = `MAC: ${d.mac}`;
+    el.innerHTML = `
+      <span class="local-icon">${icon}</span>
+      <span class="local-name">${d.ip}</span>
+      <span class="local-type">${d.mac.slice(0,8)}</span>`;
+    list.appendChild(el);
+  });
+}
+
+async function loadBluetooth() {
+  const devices = await window.api.getBtDevices().catch(() => []);
+  const list    = $('bt-devices');
+  if (!list) return;
+
+  if (!devices.length) {
+    list.innerHTML = `<div class="empty-hint" style="padding:4px 14px">Keine BT-Geräte</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  devices.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'local-device';
+    el.innerHTML = `
+      <span class="local-dot dot-bt"></span>
+      <span class="local-name">${esc(d.name || 'Unbekannt')}</span>
+      <span class="local-type">${d.status === 'OK' ? '✓' : ''}</span>`;
+    list.appendChild(el);
+  });
+}
+
+function guessDeviceIcon(ip, mac) {
+  const last = parseInt(ip.split('.').pop());
+  if (last === 1 || last === 254) return '🌐'; // Router
+  const macU = mac.toUpperCase();
+  // Bekannte OUI-Präfixe (grob)
+  if (macU.startsWith('B8:27') || macU.startsWith('DC:A6') || macU.startsWith('E4:5F')) return '🍓'; // Raspberry Pi
+  if (macU.startsWith('00:50:56') || macU.startsWith('00:0C:29')) return '🖥'; // VMware
+  if (macU.startsWith('AC:BC') || macU.startsWith('F8:FF')) return '📱'; // Mobile
+  return '💻'; // Default: Laptop/PC
+}
+
+// Scan-Button + Add-Conn-Button (direkt, da Script am Ende von body)
+$('btn-scan-network')?.addEventListener('click', () => {
+  const btn = $('btn-scan-network');
+  if (btn) { btn.style.transition = 'transform .6s'; btn.style.transform = 'rotate(360deg)'; }
+  setTimeout(() => { if (btn) btn.style.transform = ''; }, 700);
+  loadLocalNetwork();
+});
+$('add-conn-left-btn')?.addEventListener('click', () => openConnectModal('any'));
+
 // ── API KEY TOOL ──────────────────────────────────────────────
 
 const API_KEY_SERVICES = [

@@ -37,22 +37,68 @@
 
   <!-- ── LEFT SIDEBAR ────────────────────────────────────── -->
   <aside id="left-panel">
+
+    <!-- Scrollbarer Bereich: Konnektoren + Agenten -->
     <div id="left-inner">
+
+      <!-- ── KONNEKTOREN (Clouds + Dienste zusammen) ──────── -->
       <div class="section">
-        <div class="sec-hdr"><span class="sec-title">☁ Cloud-Speicher</span></div>
-        <div class="conn-list" id="cloud-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
+        <div class="sec-hdr">
+          <span class="sec-title">🔌 Konnektoren</span>
+          <button class="ico-btn" id="add-conn-left-btn" title="Konnektor hinzufügen">+</button>
+        </div>
+        <div class="conn-list" id="conn-list-all">
+          <div class="empty-hint">Über + oder Chat-Footer verbinden</div>
+        </div>
       </div>
+
       <div class="divider"></div>
-      <div class="section">
-        <div class="sec-hdr"><span class="sec-title">🔧 Dienste</span></div>
-        <div class="conn-list" id="service-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
-      </div>
-      <div class="divider"></div>
+
+      <!-- ── KI-AGENTEN ───────────────────────────────────── -->
       <div class="section">
         <div class="sec-hdr"><span class="sec-title">🤖 KI-Agenten</span></div>
-        <div class="conn-list" id="agent-conn-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
+        <div class="conn-list" id="agent-conn-list">
+          <div class="empty-hint">Über + oder Chat-Footer verbinden</div>
+        </div>
       </div>
+
     </div>
+
+    <!-- ── LOKALES NETZWERK (fixiert unten) ─────────────────── -->
+    <div id="local-panel">
+      <div class="local-header">
+        <span class="sec-title">📡 Lokales Netzwerk</span>
+        <button class="ico-btn" id="btn-scan-network" title="Netzwerk scannen">↺</button>
+      </div>
+
+      <!-- WLAN -->
+      <div class="local-section">
+        <div class="local-sec-title">📶 WLAN</div>
+        <div id="wifi-info" class="local-item">
+          <span class="local-dot dot-checking"></span>
+          <span id="wifi-name">Wird geladen…</span>
+          <span id="wifi-strength" class="local-meta"></span>
+        </div>
+      </div>
+
+      <!-- Netzwerkgeräte -->
+      <div class="local-section">
+        <div class="local-sec-title">🖥 Geräte im Netzwerk</div>
+        <div id="network-devices" class="local-list">
+          <div class="empty-hint" style="padding:4px 8px">Scannen…</div>
+        </div>
+      </div>
+
+      <!-- Bluetooth -->
+      <div class="local-section">
+        <div class="local-sec-title">🔵 Bluetooth</div>
+        <div id="bt-devices" class="local-list">
+          <div class="empty-hint" style="padding:4px 8px">Nicht verfügbar</div>
+        </div>
+      </div>
+
+    </div>
+
   </aside>
 
   <!-- ── CENTER ──────────────────────────────────────────── -->

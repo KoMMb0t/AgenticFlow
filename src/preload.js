@@ -69,4 +69,9 @@ contextBridge.exposeInMainWorld('api', {
 
   // ── Open URL in system browser ───────────────────────
   openExternal: url => ipcRenderer.send('open-external', url),
+
+  // ── Local network ─────────────────────────────────────
+  getWifiInfo:    () => ipcRenderer.invoke('get-wifi-info'),
+  scanNetwork:    () => ipcRenderer.invoke('scan-network'),
+  getBtDevices:   () => ipcRenderer.invoke('get-bt-devices'),
 });

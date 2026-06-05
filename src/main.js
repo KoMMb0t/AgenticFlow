@@ -314,6 +314,50 @@ ipcMain.on('clear-chat-history', () => store.set('chatHistory', []));
 // Open URL in default system browser (for API key pages)
 ipcMain.on('open-external', (_, url) => shell.openExternal(url).catch(() => {}));
 
+// ── Local network / WiFi / Bluetooth ────────────────────────
+const { execFile } = require('child_process');
+
+ipcMain.handle('get-wifi-info', () => new Promise(resolve => {
+  execFile('netsh', ['wlan', 'show', 'interfaces'], { encoding: 'utf8' }, (err, out) => {
+    if (err) return resolve({ name: 'Nicht verbunden', strength: 0 });
+    const nameMatch     = out.match(/\s+SSID\s+:\s(.+)/);
+    const signalMatch   = out.match(/\s+Signal\s+:\s(\d+)%/);
+    resolve({
+      name:     nameMatch   ? nameMatch[1].trim()   : 'Nicht verbunden',
+      strength: signalMatch ? parseInt(signalMatch[1]) : 0,
+    });
+  });
+}));
+
+ipcMain.handle('scan-network', () => new Promise(resolve => {
+  // arp -a gibt alle bekannten Geräte im LAN zurück
+  execFile('arp', ['-a'], { encoding: 'utf8' }, (err, out) => {
+    if (err) return resolve([]);
+    const devices = [];
+    const lines = out.split('\n');
+    for (const line of lines) {
+      const m = line.match(/(\d+\.\d+\.\d+\.\d+)\s+([\w-]+)\s+(\w+)/);
+      if (m && m[3] === 'dynamic') {
+        devices.push({ ip: m[1], mac: m[2] });
+      }
+    }
+    resolve(devices.slice(0, 12)); // max 12 Geräte
+  });
+}));
+
+ipcMain.handle('get-bt-devices', () => new Promise(resolve => {
+  // PowerShell: Bluetooth-Geräte auflesen
+  const ps = 'Get-PnpDevice -Class Bluetooth | Where-Object {$_.Status -eq "OK"} | Select-Object -First 8 FriendlyName,Status | ConvertTo-Json';
+  execFile('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8' }, (err, out) => {
+    if (err || !out.trim()) return resolve([]);
+    try {
+      const raw = JSON.parse(out.trim());
+      const arr = Array.isArray(raw) ? raw : [raw];
+      resolve(arr.map(d => ({ name: d.FriendlyName, status: d.Status })));
+    } catch { resolve([]); }
+  });
+}));
+
 // ── App lifecycle ────────────────────────────────────────────
 
 app.on('ready', createMainWindow);
