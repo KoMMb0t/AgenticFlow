@@ -382,6 +382,36 @@ ipcMain.handle('launch-local-app', (_, appName) => new Promise(resolve => {
   });
 }));
 
+// ── MCP-Server starten (lokaler Node-Server unter /MCP/<name>) ──
+const mcpProcs = new Map(); // id -> child process
+ipcMain.handle('launch-mcp-server', (_, { id, name, port } = {}) => new Promise(resolve => {
+  if (!id) return resolve({ ok: false, error: 'keine id' });
+  if (mcpProcs.has(id)) return resolve({ ok: true, already: true });
+  const { spawn } = require('child_process');
+  const dir = path.join(__dirname, '..', 'MCP', name || id);
+  if (!require('fs').existsSync(dir)) {
+    return resolve({ ok: false, error: `MCP-Ordner fehlt: ${dir}` });
+  }
+  try {
+    const proc = spawn('npm', ['start'], {
+      cwd: dir, shell: true, env: { ...process.env, PORT: String(port || '') },
+      windowsHide: true,
+    });
+    mcpProcs.set(id, proc);
+    proc.on('exit', () => mcpProcs.delete(id));
+    resolve({ ok: true });
+  } catch (e) { resolve({ ok: false, error: e.message }); }
+}));
+
+ipcMain.handle('stop-mcp-server', (_, id) => {
+  const p = mcpProcs.get(id);
+  if (p) { try { p.kill(); } catch {} mcpProcs.delete(id); }
+  return { ok: true };
+});
+
+// Beim App-Beenden alle MCP-Server stoppen
+app.on('before-quit', () => { mcpProcs.forEach(p => { try { p.kill(); } catch {} }); });
+
 // ── Local network / WiFi / Bluetooth ────────────────────────
 const { execFile } = require('child_process');
 

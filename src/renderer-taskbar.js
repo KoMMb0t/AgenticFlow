@@ -124,6 +124,17 @@ class TaskbarManager {
       .tb-opt.selected .tb-radio::after {
         content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--acc);
       }
+
+      .mcp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 3px; }
+      .mcp-dot.on  { background: var(--success); }
+      .mcp-dot.off { background: var(--txt-d); }
+      .tb-mcp-x {
+        width: 18px; height: 18px; flex-shrink: 0;
+        background: transparent; border: none; color: var(--txt-d);
+        border-radius: 4px; cursor: pointer; font-size: 10px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .tb-mcp-x:hover { background: var(--danger); color: #fff; }
     `;
     document.head.appendChild(s);
   }
@@ -151,11 +162,21 @@ class TaskbarManager {
           </button>
           <div class="tb-menu" id="tb-agents-menu"></div>
         </div>
+        <!-- MCP -->
+        <div class="tb-dropdown">
+          <button class="tb-btn" id="tb-mcp-btn">
+            <span class="tb-btn-icon">📡</span>
+            <span id="tb-mcp-label">MCP</span>
+            <span class="tb-arrow">▾</span>
+          </button>
+          <div class="tb-menu" id="tb-mcp-menu"></div>
+        </div>
       </div>
     `;
 
     this._renderRolesMenu();
     this._renderAgentsMenu();
+    this._renderMcpMenu();
 
     $('tb-roles-btn').addEventListener('click', e => {
       e.stopPropagation();
@@ -165,8 +186,121 @@ class TaskbarManager {
       e.stopPropagation();
       this._toggleMenu('tb-agents-menu');
     });
+    $('tb-mcp-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      this._toggleMenu('tb-mcp-menu');
+    });
+
+    // MCP-Status live aktualisieren
+    window.addEventListener('mcp-status-changed', () => { this._renderMcpMenu(); this._updateMcpLabel(); });
 
     this._updateRolesLabel();
+    this._updateMcpLabel();
+  }
+
+  _renderMcpMenu() {
+    const menu = $('tb-mcp-menu');
+    if (!menu || !window.mcpMgr) return;
+    const active = window.mcpMgr.getActive();
+
+    let html = '';
+
+    // Aktive MCPs mit Kontext-Checkbox (Multiauswahl, wie Rollen)
+    if (active.length) {
+      html += `<div class="tb-menu-head">Aktiv — im Chat-Kontext nutzen</div>`;
+      active.forEach(m => {
+        const inCtx = window.mcpMgr.isInContext(m.id);
+        html += `
+          <div class="tb-opt ${inCtx ? 'selected' : ''}" data-ctx="${m.id}">
+            <span class="tb-opt-check">${inCtx ? '✓' : ''}</span>
+            <span class="tb-opt-icon">${m.icon}</span>
+            <div class="tb-opt-body">
+              <div class="tb-opt-name">${esc(m.name)}</div>
+              <div class="tb-opt-desc">
+                <span class="mcp-dot ${m.connected ? 'on' : 'off'}"></span>
+                ${m.connected ? 'verbunden' : 'offline'} · ${esc(m.url)}
+              </div>
+            </div>
+            <button class="tb-mcp-x" data-remove="${m.id}" title="Entfernen">✕</button>
+          </div>`;
+      });
+      html += `<div class="tb-divider"></div>`;
+    }
+
+    // Templates zum Aktivieren
+    html += `<div class="tb-menu-head">MCP-Server starten</div>`;
+    window.mcpMgr.getTemplates().forEach(t => {
+      const isOn = window.mcpMgr.isActive(t.id);
+      html += `
+        <div class="tb-opt ${isOn ? 'disabled' : ''}" data-tpl="${t.id}" style="${isOn ? 'opacity:.4' : ''}">
+          <span class="tb-opt-icon">${t.icon}</span>
+          <div class="tb-opt-body">
+            <div class="tb-opt-name">${esc(t.name)} ${isOn ? '✓' : ''}</div>
+            <div class="tb-opt-desc">${esc(t.desc)} · Port ${t.port}</div>
+          </div>
+          ${isOn ? '' : '<span style="font-size:11px;color:var(--acc)">▶ Start</span>'}
+        </div>`;
+    });
+
+    // Custom + Refresh
+    html += `<div class="tb-divider"></div>
+      <div class="tb-opt" id="tb-mcp-custom">
+        <span class="tb-opt-icon">🔌</span>
+        <div class="tb-opt-body"><div class="tb-opt-name">Custom MCP…</div>
+        <div class="tb-opt-desc">Eigene URL verbinden</div></div>
+      </div>
+      <div class="tb-opt" id="tb-mcp-refresh">
+        <span class="tb-opt-icon">↻</span>
+        <div class="tb-opt-body"><div class="tb-opt-name">Status prüfen</div></div>
+      </div>`;
+
+    menu.innerHTML = html;
+
+    // Kontext-Toggle
+    menu.querySelectorAll('[data-ctx]').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('[data-remove]')) return;
+        window.mcpMgr.toggleContext(el.dataset.ctx);
+        this._renderMcpMenu();
+        this._updateMcpLabel();
+      });
+    });
+    // Entfernen
+    menu.querySelectorAll('[data-remove]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        window.mcpMgr.removeMcp(el.dataset.remove);
+        this._renderMcpMenu();
+        this._updateMcpLabel();
+      });
+    });
+    // Template starten
+    menu.querySelectorAll('[data-tpl]').forEach(el => {
+      if (el.classList.contains('disabled')) return;
+      el.addEventListener('click', async () => {
+        await window.mcpMgr.activateTemplate(el.dataset.tpl);
+        this._renderMcpMenu();
+        this._updateMcpLabel();
+      });
+    });
+    // Custom
+    $('tb-mcp-custom')?.addEventListener('click', () => {
+      const id   = prompt('MCP-ID (z.B. my-mcp):'); if (!id) return;
+      const name = prompt('Name:') || id;
+      const url  = prompt('URL (z.B. http://localhost:3099):'); if (!url) return;
+      window.mcpMgr.addCustom(id, name, url);
+      this._renderMcpMenu(); this._updateMcpLabel();
+    });
+    // Refresh
+    $('tb-mcp-refresh')?.addEventListener('click', () => window.mcpMgr.checkHealth());
+  }
+
+  _updateMcpLabel() {
+    const label = $('tb-mcp-label');
+    if (!label || !window.mcpMgr) return;
+    const ctx = window.mcpMgr.contextMcps.length;
+    label.innerHTML = ctx ? `MCP · ${ctx} aktiv <span class="tb-count">${ctx}</span>` : 'MCP';
+    $('tb-mcp-btn')?.classList.toggle('active', ctx > 0);
   }
 
   _renderRolesMenu() {

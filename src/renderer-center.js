@@ -213,9 +213,19 @@ class CenterManager {
 
       // Config aus Taskbar (Rollen + Modell)
       const cfg = window.taskbarMgr?.getActiveConfig() || {};
-      const sysPrompt = window.taskbarMgr?.buildSystemPrompt()
+      let sysPrompt = window.taskbarMgr?.buildSystemPrompt()
         || window.AGENT_PROMPTS[this.activeAgent]
         || window.AGENT_PROMPTS.architect;
+
+      // Aktive MCP-Server (Chat-Kontext) an System-Prompt anhängen
+      const ctxMcps = (window.mcpMgr?.contextMcps || [])
+        .map(id => window.mcpMgr.getActive().find(m => m.id === id))
+        .filter(Boolean);
+      if (ctxMcps.length) {
+        sysPrompt += `\n\nVerfügbare MCP-Server (Tools über HTTP erreichbar):\n` +
+          ctxMcps.map(m => `- ${m.name} → ${m.url} (${m.connected ? 'verbunden' : 'offline'})`).join('\n');
+      }
+
       const model    = cfg.model || $('architect-model')?.value || 'claude-sonnet-4-6';
       const provider = $('provider-select')?.value || 'claude';
       const apiKey   = this.state.apiKeys?.[provider];

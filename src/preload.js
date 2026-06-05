@@ -78,6 +78,10 @@ contextBridge.exposeInMainWorld('api', {
   getBtDevices:   () => ipcRenderer.invoke('get-bt-devices'),
   setNetworkAccess: enabled => ipcRenderer.send('set-network-access', enabled),
 
+  // ── MCP-Server ────────────────────────────────────────
+  launchMcpServer: data => ipcRenderer.invoke('launch-mcp-server', data),
+  stopMcpServer:   id   => ipcRenderer.invoke('stop-mcp-server', id),
+
   // ── BLE ───────────────────────────────────────────────
   bleGetDevices:    ()          => ipcRenderer.invoke('ble-get-devices'),
   bleScan:          ()          => ipcRenderer.invoke('ble-scan'),
