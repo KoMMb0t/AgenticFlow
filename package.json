@@ -26,8 +26,8 @@
     "electron-builder": "^24.0.0"
   },
   "dependencies": {
-    "electron-store": "^8.1.0",
     "@anthropic-ai/sdk": "^0.39.0",
+    "electron-store": "^8.1.0",
     "node-fetch": "^3.3.2"
   },
   "build": {

@@ -55,6 +55,7 @@ const CONNECTOR_TEMPLATES = [
   { id: 'notion',       name: 'Notion',         url: 'https://notion.so',           icon: 'N',  color: '#fff',    cat: 'tool'    },
   { id: 'trello',       name: 'Trello',         url: 'https://trello.com',          icon: '📋', color: '#0052cc', cat: 'tool'    },
   { id: 'figma',        name: 'Figma',          url: 'https://figma.com',           icon: '🎨', color: '#a259ff', cat: 'tool'    },
+  { id: 'perfect-memory', name: 'Perfect Memory', url: '',                          icon: '🧠', color: '#b85cff', cat: 'tool', localApp: 'Perfect Memory' },
   { id: 'custom',       name: 'Benutzerdefiniert', url: '',                         icon: '⚙',  color: '#888',    cat: 'custom'  },
 ];
 
@@ -197,13 +198,14 @@ ipcMain.handle('add-connector', (_, { templateId, label, customUrl, accountIndex
     icon:         tpl.icon,
     color:        tpl.color,
     cat:          tpl.cat,
+    localApp:     tpl.localApp || null,
     partition:    `persist:${instanceId}`,
   };
 
   const list = store.get('connectors');
   list.push(conn);
   store.set('connectors', list);
-  makeCenterView(conn);
+  if (!conn.localApp) makeCenterView(conn); // local apps get no BrowserView
   return conn;
 });
 
@@ -317,6 +319,21 @@ ipcMain.on('clear-chat-history', () => store.set('chatHistory', []));
 // Open URL in default system browser (for API key pages)
 ipcMain.on('open-external', (_, url) => shell.openExternal(url).catch(() => {}));
 
+// ── Local desktop apps (e.g. Perfect Memory) ─────────────────
+// Resolves a Start-menu app by name via Get-StartApps and launches it.
+ipcMain.handle('launch-local-app', (_, appName) => new Promise(resolve => {
+  if (!appName || typeof appName !== 'string') return resolve({ ok: false, error: 'invalid name' });
+  const psScript =
+    `$app = Get-StartApps | Where-Object { $_.Name -like '*${appName.replace(/'/g, "''")}*' } | Select-Object -First 1; ` +
+    `if ($app) { Start-Process ('shell:AppsFolder\\' + $app.AppID); 'OK' } else { 'NOTFOUND' }`;
+  const { execFile: ef } = require('child_process');
+  ef('powershell', ['-NoProfile', '-Command', psScript], { encoding: 'utf8' }, (err, out) => {
+    if (err)                          return resolve({ ok: false, error: err.message });
+    if (out.trim() === 'NOTFOUND')    return resolve({ ok: false, error: `App "${appName}" nicht gefunden` });
+    resolve({ ok: true });
+  });
+}));
+
 // ── Local network / WiFi / Bluetooth ────────────────────────
 const { execFile } = require('child_process');
 
@@ -361,8 +378,24 @@ ipcMain.handle('get-bt-devices', () => new Promise(resolve => {
   });
 }));
 
+// ── Auto-Update: beim Start die neueste Version vom Repo holen ──
+// Läuft nur, wenn die App aus einem Git-Klon gestartet wird.
+// Änderungen wirken ab dem NÄCHSTEN Start (Code ist dann schon geladen).
+function autoUpdateRepo() {
+  const repoDir = path.join(__dirname, '..');
+  const fs = require('fs');
+  if (!fs.existsSync(path.join(repoDir, '.git'))) return; // kein Git-Klon → überspringen
+  execFile('git', ['-C', repoDir, 'pull', '--ff-only'], { encoding: 'utf8', timeout: 20000 }, (err, out) => {
+    if (err) { console.log('[AutoUpdate] übersprungen:', err.message); return; }
+    if (out && !/Already up to date/i.test(out)) {
+      console.log('[AutoUpdate] Neue Version geholt — wird beim nächsten Start aktiv.\n' + out);
+      if (mainWindow) mainWindow.webContents.send('app-updated');
+    }
+  });
+}
+
 // ── App lifecycle ────────────────────────────────────────────
 
-app.on('ready', createMainWindow);
+app.on('ready', () => { createMainWindow(); autoUpdateRepo(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (!mainWindow) createMainWindow(); });

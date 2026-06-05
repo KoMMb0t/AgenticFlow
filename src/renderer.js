@@ -246,6 +246,14 @@ function openConnector(id) {
   const c = S.connections.find(x => x.instanceId === id);
   if (!c) return;
 
+  // Local desktop apps (e.g. Perfect Memory) launch natively — no BrowserView
+  if (c.localApp) {
+    window.api.launchLocalApp(c.localApp).then(res => {
+      if (res && !res.ok) alert(`${c.name} konnte nicht gestartet werden: ${res.error}`);
+    });
+    return;
+  }
+
   // AI/social agents open in right panel via BrowserView
   // Cloud/service open in center panel via BrowserView
   const panel = (c.cat === 'ai' || c.cat === 'comms' || c.cat === 'social') ? 'right' : 'center';
@@ -496,8 +504,15 @@ $('chat-input').addEventListener('input', autoResize);
 async function sendChatMsg() {
   const text = $('chat-input').value.trim();
   if (!text) return;
-  const apiKey = S.apiKeys.claude;
-  if (!apiKey) { $('settings-overlay').style.display = 'flex'; return; }
+
+  const provider = $('provider-select')?.value || 'claude';
+  if (provider === 'browser') { openBrowserAgent(); return; }
+  const apiKey = S.apiKeys[provider];
+  if (!apiKey) {
+    // Kein Key für diesen Anbieter → Key-Einfügen-Panel öffnen
+    openKeySharePanel(provider);
+    return;
+  }
 
   $('chat-messages').querySelector('.chat-welcome')?.remove();
   const uMsg = { role: 'user', content: text, ts: Date.now() };
@@ -510,7 +525,7 @@ async function sendChatMsg() {
   const hist = S.chatMessages.filter(m => m.role === 'user' || m.role === 'assistant').slice(-20).map(m => ({ role: m.role, content: m.content }));
 
   window.api.claudeStream(
-    { agentRole: 'architect', messages: hist, model: $('model-select').value, apiKey },
+    { agentRole: 'architect', messages: hist, model: $('model-select').value, apiKey, provider },
     chunk => { full += chunk; const b = el.querySelector('.msg-bubble'); if (b) { b.textContent = full; b.classList.add('streaming'); } $('chat-messages').scrollTop = $('chat-messages').scrollHeight; },
     () => { el.querySelector('.msg-bubble')?.classList.remove('streaming'); const m = { role:'assistant', content:full, ts:Date.now() }; S.chatMessages.push(m); window.api.saveChatMessage(m); },
     err => { el.querySelector('.msg-bubble').textContent = `Fehler: ${err}`; el.querySelector('.msg-bubble')?.classList.remove('streaming'); }
@@ -1298,6 +1313,126 @@ function renderApiKeyList(query) {
 
 // Init after DOM is ready
 initApiKeyTool();
+
+// ── KEY EINFÜGEN (Teilen-Button) ─────────────────────────────
+// Keys werden NUR lokal gespeichert (electron-store) — nie im Repo.
+const KEY_SHARE_SERVICES = [
+  { id: 'claude',     name: '⚗ Anthropic (Claude)' },
+  { id: 'openai',     name: '🤖 OpenAI' },
+  { id: 'gemini',     name: '✦ Google Gemini' },
+  { id: 'perplexity', name: '◎ Perplexity' },
+  { id: 'mistral',    name: 'M Mistral' },
+  { id: 'groq',       name: '⚡ Groq' },
+  { id: 'cohere',     name: 'C Cohere' },
+  { id: 'github',     name: '⚡ GitHub' },
+  { id: 'gitlab',     name: '🦊 GitLab' },
+  { id: 'dropbox',    name: '📦 Dropbox' },
+  { id: 'notion',     name: 'N Notion' },
+  { id: 'slack',      name: 'S Slack' },
+  { id: 'custom',     name: '⚙ Eigener Dienst' },
+];
+
+function openKeySharePanel(preselectService) {
+  const panel = $('keyshare-panel');
+  panel.style.display = 'flex';
+  if (preselectService) $('keyshare-service').value = preselectService;
+  setTimeout(() => $('keyshare-input').focus(), 80);
+}
+
+function initKeyShareTool() {
+  const fab   = $('keyshare-fab');
+  const panel = $('keyshare-panel');
+  const sel   = $('keyshare-service');
+
+  // Dropdown befüllen
+  sel.innerHTML = KEY_SHARE_SERVICES
+    .map(s => `<option value="${s.id}">${esc(s.name)}</option>`)
+    .join('');
+
+  fab.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) setTimeout(() => $('keyshare-input').focus(), 80);
+  });
+
+  $('keyshare-close').addEventListener('click', e => {
+    e.stopPropagation();
+    panel.style.display = 'none';
+  });
+
+  $('keyshare-save').addEventListener('click', () => {
+    const service = sel.value;
+    const key     = $('keyshare-input').value.trim();
+    const status  = $('keyshare-status');
+    if (!key) { status.textContent = '⚠ Bitte zuerst einen Key einfügen'; return; }
+    window.api.saveApiKey(service, key);
+    S.apiKeys[service] = key;
+    $('keyshare-input').value = '';
+    status.textContent = `✓ ${service}-Key lokal gespeichert`;
+    setTimeout(() => { status.textContent = ''; panel.style.display = 'none'; }, 1600);
+  });
+
+  $('keyshare-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') $('keyshare-save').click();
+  });
+
+  // Außenklick schließt das Panel
+  document.addEventListener('click', e => {
+    if (!panel.contains(e.target) && e.target !== fab)
+      panel.style.display = 'none';
+  });
+}
+initKeyShareTool();
+
+// ── PROVIDER-UMSCHALTER (Claude / OpenAI / Gemini / Browser) ──
+const PROVIDER_MODELS = {
+  claude: [
+    ['claude-sonnet-4-6',          '⚗ Sonnet 4.6'],
+    ['claude-opus-4-8',            '🏗 Opus 4.8'],
+    ['claude-haiku-4-5-20251001',  '⚡ Haiku 4.5'],
+  ],
+  openai: [
+    ['gpt-4o',      '🤖 GPT-4o'],
+    ['gpt-4o-mini', '🤖 GPT-4o mini'],
+  ],
+  gemini: [
+    ['gemini-1.5-pro',   '✦ Gemini 1.5 Pro'],
+    ['gemini-1.5-flash', '✦ Gemini 1.5 Flash'],
+  ],
+};
+
+function initProviderSwitch() {
+  const provSel  = $('provider-select');
+  const modelSel = $('model-select');
+  if (!provSel || !modelSel) return;
+
+  provSel.addEventListener('change', () => {
+    const p = provSel.value;
+    if (p === 'browser') {
+      openBrowserAgent();
+      return;
+    }
+    const models = PROVIDER_MODELS[p] || PROVIDER_MODELS.claude;
+    modelSel.innerHTML = models.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+    // Hinweis, falls für den Anbieter noch kein Key gespeichert ist
+    if (!S.apiKeys[p]) openKeySharePanel(p);
+  });
+}
+
+function openBrowserAgent() {
+  // Ersten verbundenen Browser-KI-Agenten öffnen (rechtes Panel)
+  const agent = S.connections.find(c => c.cat === 'ai');
+  if (agent) {
+    openConnector(agent.instanceId);
+  } else {
+    alert('Noch kein Browser-Agent verbunden. Füge über "＋ Verbinden" einen KI-Agenten hinzu (z. B. ChatGPT, Manus, Claude Web).');
+  }
+  // Zurück auf Claude API stellen, damit der Chat weiter funktioniert
+  const provSel = $('provider-select');
+  if (provSel) provSel.value = 'claude';
+}
+initProviderSwitch();
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
 function autoResize(e) { e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'; }

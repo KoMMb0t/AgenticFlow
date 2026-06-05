@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // ── Connectors (left panel) ──────────────────────────
   addConnector:       data => ipcRenderer.invoke('add-connector', data),
+  launchLocalApp:     name => ipcRenderer.invoke('launch-local-app', name),
   removeConnector:    id   => ipcRenderer.send('remove-connector', id),
   onConnectorRemoved: cb   => ipcRenderer.on('connector-removed', (_, id) => cb(id)),
 

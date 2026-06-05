@@ -52,16 +52,63 @@ Erkläre deine Entscheidungen kurz. Nutze Best Practices.`,
 Du hast Zugriff auf alle gespeicherten Notizen und Erinnerungen des Nutzers.`,
 };
 
+// ── Alternative API-Provider (OpenAI, Gemini) ────────────────
+// Nicht-streamend — Antwort wird als ein Chunk geliefert.
+
+async function openaiChat({ messages, model, apiKey, system }) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model:    model || 'gpt-4o-mini',
+      messages: [{ role: 'system', content: system }, ...messages],
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || `OpenAI HTTP ${res.status}`);
+  return { text: data.choices?.[0]?.message?.content || '', usage: data.usage };
+}
+
+async function geminiChat({ messages, model, apiKey, system }) {
+  const m = model || 'gemini-1.5-flash';
+  const contents = messages.map(x => ({
+    role:  x.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: x.content }],
+  }));
+  // Key im Header (nicht in der URL!)
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: system }] },
+      contents,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || `Gemini HTTP ${res.status}`);
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+  return { text, usage: data.usageMetadata };
+}
+
 // ── IPC Handlers ─────────────────────────────────────────────
 
 function registerHandlers(store) {
 
   // Single message (non-streaming) — for agent delegation etc.
-  ipcMain.handle('claude-message', async (event, { agentRole, messages, model, apiKey }) => {
+  ipcMain.handle('claude-message', async (event, { agentRole, messages, model, apiKey, provider }) => {
     try {
-      const c = getClient(apiKey || store.get('claudeApiKey'));
       const systemPrompt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
+      if (provider === 'openai') {
+        const r = await openaiChat({ messages, model, apiKey, system: systemPrompt });
+        return { ok: true, content: r.text, usage: r.usage };
+      }
+      if (provider === 'gemini') {
+        const r = await geminiChat({ messages, model, apiKey, system: systemPrompt });
+        return { ok: true, content: r.text, usage: r.usage };
+      }
+
+      const c = getClient(apiKey || store.get('claudeApiKey'));
       const response = await c.messages.create({
         model:      model || 'claude-sonnet-4-6',
         max_tokens: 4096,
@@ -76,8 +123,19 @@ function registerHandlers(store) {
   });
 
   // Streaming message — sends chunks back to renderer
-  ipcMain.on('claude-stream', async (event, { agentRole, messages, model, apiKey, streamId }) => {
+  ipcMain.on('claude-stream', async (event, { agentRole, messages, model, apiKey, streamId, provider }) => {
     try {
+      const systemPromptAlt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
+
+      // OpenAI / Gemini: nicht-streamend, Antwort als ein Chunk
+      if (provider === 'openai' || provider === 'gemini') {
+        const fn = provider === 'openai' ? openaiChat : geminiChat;
+        const r  = await fn({ messages, model, apiKey, system: systemPromptAlt });
+        event.sender.send(`claude-stream-chunk:${streamId}`, { text: r.text });
+        event.sender.send(`claude-stream-done:${streamId}`,  { usage: r.usage, stopReason: 'end' });
+        return;
+      }
+
       const c = getClient(apiKey || store.get('claudeApiKey'));
       const systemPrompt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
