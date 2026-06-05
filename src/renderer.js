@@ -155,7 +155,31 @@ window.api.onAppReady(data => {
   setupSettingsModal();
 });
 
-window.api.onWindowResized?.(() => {}); // BrowserViews auto-resize
+// ── Layout: BrowserView-Bounds an Main melden ─────────────
+// Ohne diese Messung bleiben Konnektor-Views unsichtbar (centerBounds=null).
+window.sendLayout = function() {
+  requestAnimationFrame(() => {
+    const cp = $('center-panel')?.getBoundingClientRect();
+    if (!cp) return;
+    const active = window.sidebar?.activeId || null;
+    window.api.updateLayout?.({
+      center: active ? {
+        x: Math.round(cp.left), y: Math.round(cp.top),
+        width: Math.round(cp.width), height: Math.round(cp.height),
+      } : null,
+      right: null, // rechtes Panel ist reines HTML (Memory-Chat)
+    });
+  });
+};
+
+window.api.onWindowResized?.(() => sendLayout());
+window.addEventListener('resize', () => sendLayout());
+window.addEventListener('app-open',  () => setTimeout(sendLayout, 50));
+window.addEventListener('app-close', () => setTimeout(sendLayout, 50));
+// Sidebar-Toggles ändern die Center-Breite → nach Animation neu messen
+['left-toggle', 'right-toggle'].forEach(id =>
+  document.getElementById(id)?.addEventListener('click', () => setTimeout(sendLayout, 240))
+);
 
 // ── Network Info ──────────────────────────────────────────
 window.loadNetworkInfo = async function() {
@@ -224,6 +248,68 @@ window.loadNetworkInfo = async function() {
     }
   } catch {}
 };
+
+// ── BLE Code-Kopplung (6-stelliger Pairing-Code) ──────────
+(function setupBlePairing() {
+  const modal = $('ble-modal');
+  $('ble-modal-close')?.addEventListener('click', () => { if (modal) modal.style.display = 'none'; });
+  modal?.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+
+  $('btn-ble-pair')?.addEventListener('click', async () => {
+    const body = $('ble-modal-body');
+    if (!modal || !body) return;
+    modal.style.display = 'flex';
+    body.innerHTML = '<div class="empty-hint">Suche BLE-Geräte…</div>';
+
+    let devices = [];
+    try { devices = await window.api.bleGetDevices() || []; } catch {}
+
+    if (!devices.length) {
+      body.innerHTML = '<div class="empty-hint">Keine BLE-Geräte gefunden. Bluetooth aktiv?</div>';
+      return;
+    }
+
+    body.innerHTML = `
+      <div style="font-size:11px;color:var(--txt-d);margin-bottom:8px">Gerät wählen, Code vergleichen, bestätigen:</div>
+      <div id="ble-pair-list"></div>
+      <div id="ble-pair-code" style="display:none;text-align:center;padding:14px">
+        <div style="font-size:11px;color:var(--txt-d)">Pairing-Code — muss auf beiden Geräten gleich sein:</div>
+        <div id="ble-code-digits" style="font-size:30px;font-weight:800;letter-spacing:8px;margin:10px 0;color:var(--acc2)"></div>
+        <button class="settings-btn" id="ble-code-confirm">✓ Code stimmt — koppeln</button>
+        <button class="settings-btn" id="ble-code-cancel" style="background:var(--bg-card);margin-left:6px">Abbrechen</button>
+      </div>
+    `;
+
+    const list = $('ble-pair-list');
+    devices.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'network-device-item';
+      el.style.cursor = 'pointer';
+      el.innerHTML = `<span>${d.icon || '🔵'}</span><span>${esc(d.name)}</span><span style="margin-left:auto;font-size:9px;color:var(--txt-d)">koppeln →</span>`;
+      el.addEventListener('click', () => {
+        // 6-stelligen Code erzeugen und anzeigen
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        $('ble-code-digits').textContent = code;
+        $('ble-pair-code').style.display = 'block';
+        list.style.display = 'none';
+
+        $('ble-code-confirm').onclick = async () => {
+          await window.api.blePairForLogin?.({
+            deviceId: d.id, deviceName: d.name, deviceType: d.type || 'device', pairCode: code,
+          });
+          localStorage.setItem(`af_ble_${d.id}`, 'true');
+          body.innerHTML = `<div style="text-align:center;padding:18px">✅ <b>${esc(d.name)}</b> gekoppelt!<br><span style="font-size:11px;color:var(--txt-d)">Login per BLE ist jetzt aktiv.</span></div>`;
+          window.loadNetworkInfo?.();
+        };
+        $('ble-code-cancel').onclick = () => {
+          $('ble-pair-code').style.display = 'none';
+          list.style.display = 'block';
+        };
+      });
+      list.appendChild(el);
+    });
+  });
+})();
 
 // ── Settings Modal ────────────────────────────────────────
 function setupSettingsModal() {

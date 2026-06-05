@@ -118,6 +118,34 @@ class CenterManager {
         window.api.projectUpdate?.(p.id, { model: e.target.value });
       }
     });
+
+    // Provider-Umschalter: Modell-Liste passend zum Anbieter
+    const PROVIDER_MODELS = {
+      claude: [
+        ['claude-opus-4-8',           '🏗 Opus 4.8'],
+        ['claude-sonnet-4-6',         '⚗ Sonnet 4.6'],
+        ['claude-haiku-4-5-20251001', '⚡ Haiku 4.5'],
+      ],
+      openai: [
+        ['gpt-4o',      '🤖 GPT-4o'],
+        ['gpt-4o-mini', '🤖 GPT-4o mini'],
+      ],
+      gemini: [
+        ['gemini-1.5-pro',   '✦ Gemini 1.5 Pro'],
+        ['gemini-1.5-flash', '✦ Gemini 1.5 Flash'],
+      ],
+    };
+    $('provider-select')?.addEventListener('change', e => {
+      const p = e.target.value;
+      const sel = $('architect-model');
+      if (sel) {
+        sel.innerHTML = (PROVIDER_MODELS[p] || PROVIDER_MODELS.claude)
+          .map(([v, l], i) => `<option value="${v}"${i === (p === 'claude' ? 1 : 0) ? ' selected' : ''}>${esc(l)}</option>`)
+          .join('');
+      }
+      // Kein Key für den Anbieter? → Key-Einfügen-Panel öffnen
+      if (!this.state.apiKeys?.[p]) window.keyToolsMgr?._toggleSharePanel?.(p);
+    });
   }
 
   setAgent(agent) {
@@ -188,14 +216,25 @@ class CenterManager {
       const sysPrompt = window.taskbarMgr?.buildSystemPrompt()
         || window.AGENT_PROMPTS[this.activeAgent]
         || window.AGENT_PROMPTS.architect;
-      const model = cfg.model || $('architect-model')?.value || 'claude-sonnet-4-6';
+      const model    = cfg.model || $('architect-model')?.value || 'claude-sonnet-4-6';
+      const provider = $('provider-select')?.value || 'claude';
+      const apiKey   = this.state.apiKeys?.[provider];
+
+      if (!apiKey) {
+        this.finishTyping(aId, `🔑 Kein API-Key für ${provider} gespeichert. Über den 🔗-Button rechts unten einfügen.`);
+        this.isStreaming = false;
+        this.setAgentDot(this.activeAgent, 'idle');
+        window.keyToolsMgr?._toggleSharePanel?.(provider);
+        return;
+      }
 
       await window.api.claudeStream(
         {
           model,
+          provider,
           system:    sysPrompt,
           messages:  context,
-          apiKey:    this.state.apiKeys?.claude,
+          apiKey,
         },
         chunk => { full += chunk; this.updateTyping(aId, full); },
         () => {

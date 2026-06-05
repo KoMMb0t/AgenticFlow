@@ -93,21 +93,60 @@ assets/
 - 🎤 Mikrofon-Button
 - 🎙️ Sprachassistent-Button
 
-## ❌ NOCH ZU ERLEDIGEN
-1. `renderer-center.js` — Projekt/Chat View, Agent Tabs, Send-Logic
-2. `renderer-memory.js` — Perfect Memory Chat rechts
-3. `renderer.js` — Main init, alle Module zusammenführen, IPC-Events
-4. `main.js` anpassen — neue Partition-Logik für Multi-Account BrowserViews
-5. Mikrofon/Sprachassistent in chat input
-6. BLE Code-Kopplung (6-stelliger Code für Pairing)
-7. Network Access Toggle → tatsächlich Proxy/Permission setzen
-8. Alle neuen Dateien auf GitHub pushen
+## ✅ ERLEDIGT (2026-06-05, Details: deliverables/plan.md)
+1. ✅ `renderer-center.js` — Projekt/Chat, Agent Tabs, Send-Logic (+ Provider-Umschalter Claude/OpenAI/Gemini)
+2. ✅ `renderer-memory.js` — Perfect Memory Chat rechts
+3. ✅ `renderer.js` — Main init, Module verdrahtet + `sendLayout()` (BrowserView-Bounds!)
+4. ✅ `main.js` — add-connector akzeptiert Account-Objekte (instanceId/partition wiederverwendet)
+5. ✅ Mikrofon/Sprachassistent im Chat-Input (Web Speech API)
+6. ✅ BLE Code-Kopplung (6-stelliger Code im Pairing-Modal)
+7. ✅ Network Access Toggle — blockt Requests via session.webRequest
+8. ⏳ Auf GitHub pushen — bitte MANUELL via GitHub Desktop (nicht aus der Cowork-Sandbox committen!)
+
+## ❌ NOCH OFFEN
+- Echte OAuth-Flows pro Dienst (Auth-Menü merkt bisher nur die Methode)
+- electron-builder Release-Build testen
+
+## 🧠 Metaprompts (KI-Instanzen)
+- Alle Metaprompts für orchestrierte KI-Instanzen stehen in **`METAPROMPTS.md`**
+- Enthält: claw/OpenClaw (eingebaut) + ChatGPT, Gemini, Manus, Perplexity, Claude.ai, Grok
+- **Stehende Regel (Nutzer-Wunsch, als Wissen gespeichert):**
+  > „Schlag mir bitte Metaprompts für alle anderen KI-Instanzen vor während wir arbeiten."
+  → Bei JEDER neuen KI-Anbindung / jedem neuen Agenten proaktiv einen passenden
+    Metaprompt vorschlagen und in `METAPROMPTS.md` ergänzen.
+- Basis-Gerüst abgeleitet vom Cowork-Umsetzungsagent (Lesen → Plan → schrittweise → Annahmen dokumentieren)
+- Antwort-Protokoll wo möglich: **IAC-JSON** (performative: REQUEST/INFORM/PROPOSE/ACCEPT/REJECT)
+
+## 📚 Dokumentation & Doc-Watch (für ALLE Chats + Cowork)
+- **Lebende Doku:** `DOCUMENTATION.md` (Architektur, Ordnerstruktur, src-Module, REST-API
+  `localhost:3001`, MCP-System, Setup, Konventionen). **Erst dort nachsehen.**
+- **MCP-System:** Jeder Service = eigener Ordner unter `MCP/` (Perplexity ✅, GitHub/Notion/Slack 🟡).
+  Neue Server bauen: `MCP/METAPROMPT-MCP-Builder.md`.
+- **Doc-Watch-Workflow:** `tools/doc-watch.ps1` läuft regelmäßig (Scheduled Task „AgenticFlow-DocWatch",
+  alle 30 Min), erkennt Repo-Änderungen und legt Task-Pakete in `MCP/Manus/tasks/` ab.
+- **Schreibarbeit = Manus:** Die Doku-Erweiterung übernimmt **Manus** (Doc-Agent), nicht Claude.
+  Rolle/Regeln: `MCP/Manus/MANUS-DOC-AGENT.md`. Claude liefert nur die Änderungs-Pakete.
+
+## 🌐 Agenten-Zugang & Cloud (für claude.ai, Claude Code & andere)
+> **Vollständiges Konzept + fertige Self-Service-Prompts:** `MCP/AGENT-ACCESS-CONCEPT.md`
+- **AgenticFlow-API:** `http://localhost:<port>` — Port **nicht** fest annehmen, sondern aus
+  `MCP/_runtime/agentic-flow.json` lesen (Auto-Port-Erkennung; Start 3001, sonst nächster freier).
+- **Claude Code (lokal):** direkt per HTTP gegen die discovered `baseUrl`, oder MCP registrieren:
+  `claude mcp add agenticflow -- node "C:\Users\ModBot\AgenticFlow\MCP\Perplexity\mcp-server.js"`.
+- **claude.ai (Web):** kann **kein** localhost — entweder Custom Connector via Tunnel
+  (`cloudflared tunnel --url http://localhost:3001`) **oder** datei-basiert über kDrive.
+- **Cloud-Ablage:** Austausch-/Doc-Tasks **primär auf kDrive** (ENV `AGENTICFLOW_TASKS_DIR`),
+  **Backups auf die anderen Clouds** (OneDrive …) via `tools/backup-tasks.ps1`
+  (ENV `AGENTICFLOW_BACKUP_DIRS`, ";"-getrennt).
+  > ⚠️ kDrive-Desktop-Client ist aktuell **nicht installiert** — bis dahin Primär = lokal, Backup = OneDrive.
 
 ## 🔑 Regeln
 - API-Keys NIEMALS committen
 - Commits: `feat:`, `fix:` mit kurzer deutscher Beschreibung
 - Sprache: Deutsch für Kommunikation, Englisch für Code
 - **Immer nach Änderungen auf GitHub pushen**
+- **Metaprompts:** bei neuer KI-Instanz proaktiv Metaprompt vorschlagen (siehe METAPROMPTS.md)
+- **Doku:** Code-Änderungen → `DOCUMENTATION.md` aktuell halten (via Doc-Watch → Manus, siehe oben)
 
 ## 🛠 App starten
 ```powershell

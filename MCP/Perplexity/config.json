@@ -1,0 +1,52 @@
+{
+  "server": {
+    "name": "AgenticFlow MCP Server",
+    "version": "1.0.0",
+    "description": "Connects Perplexity.ai to AgenticFlow desktop app"
+  },
+  "agentic_flow": {
+    "base_url": "http://localhost:3001",
+    "timeout_ms": 30000,
+    "health_check_interval_ms": 30000
+  },
+  "connectors": [
+    { "id": "google-drive", "name": "Google Drive", "category": "cloud", "icon": "📁" },
+    { "id": "onedrive", "name": "OneDrive", "category": "cloud", "icon": "☁" },
+    { "id": "dropbox", "name": "Dropbox", "category": "cloud", "icon": "📦" },
+    { "id": "github", "name": "GitHub", "category": "dev", "icon": "⚡" },
+    { "id": "gitlab", "name": "GitLab", "category": "dev", "icon": "🦊" },
+    { "id": "gmail", "name": "Gmail", "category": "comms", "icon": "✉" },
+    { "id": "slack", "name": "Slack", "category": "comms", "icon": "S" },
+    { "id": "notion", "name": "Notion", "category": "tool", "icon": "N" },
+    { "id": "figma", "name": "Figma", "category": "tool", "icon": "🎨" },
+    { "id": "claude-web", "name": "Claude.ai", "category": "ai", "icon": "⚗" },
+    { "id": "chatgpt", "name": "ChatGPT", "category": "ai", "icon": "🤖" },
+    { "id": "gemini", "name": "Gemini", "category": "ai", "icon": "✦" },
+    { "id": "perplexity", "name": "Perplexity", "category": "ai", "icon": "◎" }
+  ],
+  "agents": [
+    { "id": "architect", "name": "Architect", "description": "Zerlegt Aufgaben und orchestriert andere Agenten", "model": "claude-opus-4-8" },
+    { "id": "coder", "name": "Coder", "description": "Schreibt und debuggt Code", "model": "claude-sonnet-4-6" },
+    { "id": "researcher", "name": "Researcher", "description": "Recherchiert und fasst Informationen zusammen", "model": "claude-opus-4-8" },
+    { "id": "writer", "name": "Writer", "description": "Formuliert Texte klar und präzise", "model": "claude-sonnet-4-6" },
+    { "id": "analyst", "name": "Analyst", "description": "Analysiert Daten und Trends", "model": "claude-sonnet-4-6" }
+  ],
+  "tools": {
+    "connector_operations": {
+      "enabled": true,
+      "description": "Öffne/schließe Konnektoren in AgenticFlow"
+    },
+    "agent_execution": {
+      "enabled": true,
+      "description": "Führe Agenten mit Custom-Prompts aus"
+    },
+    "memory_operations": {
+      "enabled": true,
+      "description": "Lese/schreibe Perfect Memory"
+    },
+    "chat_history": {
+      "enabled": true,
+      "description": "Zugriff auf Chat-Verlauf"
+    }
+  }
+}

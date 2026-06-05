@@ -1,0 +1,20 @@
+{
+  "server": {
+    "name": "GitHub MCP Server",
+    "version": "1.0.0",
+    "description": "GitHub REST API Integration für AgenticFlow"
+  },
+  "github": {
+    "api_url": "https://api.github.com",
+    "timeout_ms": 30000,
+    "auth_method": "personal_token"
+  },
+  "tools": {
+    "repository_operations": { "enabled": true },
+    "issue_operations": { "enabled": true },
+    "pull_request_operations": { "enabled": true },
+    "workflow_operations": { "enabled": false },
+    "release_operations": { "enabled": true },
+    "system_operations": { "enabled": true }
+  }
+}

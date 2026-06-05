@@ -72,14 +72,13 @@ class TaskbarManager {
 
       .tb-menu {
         position: absolute; top: calc(100% + 6px); left: 0; z-index: 300;
-        min-width: 260px; max-height: 360px; overflow-y: auto;
+        min-width: 260px;
         background: var(--bg-p); border: 1px solid var(--bd2);
         border-radius: 10px; box-shadow: 0 10px 36px rgba(0,0,0,.55);
         padding: 6px; display: none;
       }
-      .tb-menu.open { display: block; animation: fadeUp .15s ease; }
-      .tb-menu::-webkit-scrollbar { width: 4px; }
-      .tb-menu::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 2px; }
+      .tb-menu.open { display: block; animation: tbDrop .18s cubic-bezier(.4,0,.2,1); transform-origin: top; }
+      @keyframes tbDrop { from { opacity: 0; transform: scaleY(.85) translateY(-4px); } to { opacity: 1; transform: scaleY(1) translateY(0); } }
 
       .tb-menu-head {
         font-size: 9.5px; font-weight: 700; color: var(--txt-d);
@@ -134,20 +133,20 @@ class TaskbarManager {
     if (!bar) return;
     bar.innerHTML = `
       <div class="taskbar">
-        <!-- Rollen -->
+        <!-- Rolle -->
         <div class="tb-dropdown">
           <button class="tb-btn" id="tb-roles-btn">
             <span class="tb-btn-icon">🎭</span>
-            <span id="tb-roles-label">Architect</span>
+            <span id="tb-roles-label">Rolle · Architect</span>
             <span class="tb-arrow">▾</span>
           </button>
           <div class="tb-menu" id="tb-roles-menu"></div>
         </div>
-        <!-- Agenten/Modelle -->
+        <!-- KI -->
         <div class="tb-dropdown">
           <button class="tb-btn" id="tb-agents-btn">
             <span class="tb-btn-icon">🤖</span>
-            <span id="tb-agents-label">Sonnet 4.6</span>
+            <span id="tb-agents-label">KI · Sonnet 4.6</span>
             <span class="tb-arrow">▾</span>
           </button>
           <div class="tb-menu" id="tb-agents-menu"></div>
@@ -286,12 +285,12 @@ class TaskbarManager {
     const label = $('tb-roles-label');
     if (!label) return;
     if (this.autoMode) {
-      label.innerHTML = '⚡ Automatik';
+      label.innerHTML = 'Rolle · ⚡ Auto';
     } else if (this.selectedRoles.length === 1) {
       const r = window.ROLES.find(x => x.id === this.selectedRoles[0]);
-      label.textContent = r?.name || 'Architect';
+      label.textContent = 'Rolle · ' + (r?.name || 'Architect');
     } else {
-      label.innerHTML = `${this.selectedRoles.length} Rollen <span class="tb-count">${this.selectedRoles.length}</span>`;
+      label.innerHTML = `Rolle · ${this.selectedRoles.length} gewählt <span class="tb-count">${this.selectedRoles.length}</span>`;
     }
     $('tb-roles-btn')?.classList.toggle('active', this.autoMode || this.selectedRoles.length > 1);
   }
@@ -299,7 +298,7 @@ class TaskbarManager {
   _updateAgentsLabel() {
     const label = $('tb-agents-label');
     const m = window.AGENT_MODELS.find(x => x.id === this.activeModel);
-    if (label && m) label.textContent = m.name.replace('Claude ', '');
+    if (label && m) label.textContent = 'KI · ' + m.name.replace('Claude ', '');
   }
 
   _toggleMenu(id) {

@@ -1,0 +1,21 @@
+{
+  "name": "slack-agentic-flow-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server für Slack ↔ AgenticFlow Integration",
+  "main": "mcp-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node mcp-server.js",
+    "dev": "node --watch mcp-server.js"
+  },
+  "keywords": ["mcp", "slack", "agentic-flow"],
+  "author": "KoMMb0t / AgenticFlow",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@slack/web-api": "^6.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0"
+  },
+  "engines": { "node": ">=18.0.0" }
+}

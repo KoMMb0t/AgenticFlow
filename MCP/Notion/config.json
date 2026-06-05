@@ -1,0 +1,17 @@
+{
+  "server": {
+    "name": "Notion MCP Server",
+    "version": "1.0.0",
+    "description": "Notion Database Integration für AgenticFlow"
+  },
+  "notion": {
+    "api_version": "2022-06-28",
+    "timeout_ms": 30000
+  },
+  "tools": {
+    "database_operations": { "enabled": true },
+    "page_operations": { "enabled": true },
+    "search_operations": { "enabled": true },
+    "system_operations": { "enabled": true }
+  }
+}

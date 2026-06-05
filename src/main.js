@@ -8,6 +8,7 @@ const path  = require('path');
 const Store = require('electron-store');
 const { registerHandlers }    = require('./claude-api');
 const { registerBleHandlers } = require('./ble');
+const startApiServer          = require('./api-server');
 
 const store = new Store({
   defaults: {
@@ -31,6 +32,15 @@ const store = new Store({
 // Register Claude API & memory handlers
 registerHandlers(store);
 registerBleHandlers(store);
+
+// Start API Server (für Perplexity MCP-Konnektor)
+let apiServer = null;
+try {
+  const apiKey = store.get('apiKeys.claude');
+  apiServer = startApiServer(store, apiKey);
+} catch (err) {
+  console.warn('[API] API-Server konnte nicht starten:', err.message);
+}
 
 // ── Connector templates (left sidebar) ──────────────────────
 const CONNECTOR_TEMPLATES = [
@@ -184,28 +194,41 @@ ipcMain.on('update-layout', (_, bounds) => {
 
 // ── IPC: Connectors (left) ───────────────────────────────────
 
-ipcMain.handle('add-connector', (_, { templateId, label, customUrl, accountIndex }) => {
+ipcMain.handle('add-connector', (_, payload) => {
+  const { templateId, label, customUrl, accountIndex } = payload || {};
   const tpl = CONNECTOR_TEMPLATES.find(t => t.id === templateId);
-  if (!tpl) return null;
 
-  const instanceId = `conn_${templateId}_${Date.now()}`;
+  // v1.0: Renderer (AccountManager) liefert komplette Account-Objekte mit
+  // eigener instanceId + partition — diese WIEDERVERWENDEN (Multi-Account!).
+  const instanceId = payload?.instanceId || `conn_${templateId || 'custom'}_${Date.now()}`;
+
+  // Existiert schon? → vorhandenen Connector samt View zurückgeben
+  const list = store.get('connectors');
+  const existing = list.find(c => c.instanceId === instanceId);
+  if (existing) {
+    if (!existing.localApp && !centerViews.has(instanceId)) makeCenterView(existing);
+    return existing;
+  }
+
   const conn = {
     instanceId,
-    templateId,
-    name:         tpl.name,
-    label:        label || `Account ${accountIndex || 1}`,
-    url:          customUrl || tpl.url,
-    icon:         tpl.icon,
-    color:        tpl.color,
-    cat:          tpl.cat,
-    localApp:     tpl.localApp || null,
-    partition:    `persist:${instanceId}`,
+    templateId:   templateId || 'custom',
+    name:         payload?.name  || tpl?.name  || 'App',
+    label:        payload?.label || label || `Account ${accountIndex || 1}`,
+    url:          payload?.url   || customUrl || tpl?.url || '',
+    icon:         payload?.icon  || tpl?.icon  || '⚙',
+    color:        payload?.color || tpl?.color || '#888',
+    cat:          payload?.cat   || tpl?.cat   || 'service',
+    localApp:     payload?.localApp || tpl?.localApp || null,
+    partition:    payload?.partition || `persist:${instanceId}`,
   };
 
-  const list = store.get('connectors');
+  if (!conn.localApp && !conn.url) return null; // nichts zu öffnen
+
   list.push(conn);
   store.set('connectors', list);
   if (!conn.localApp) makeCenterView(conn); // local apps get no BrowserView
+  applyNetworkAccessToPartition(conn.partition);
   return conn;
 });
 
@@ -319,6 +342,31 @@ ipcMain.on('clear-chat-history', () => store.set('chatHistory', []));
 // Open URL in default system browser (for API key pages)
 ipcMain.on('open-external', (_, url) => shell.openExternal(url).catch(() => {}));
 
+// ── Netzwerk-Freigabe (Netzgabe-Toggle) ──────────────────────
+// false = alle Konnektor-BrowserViews werden vom Netz getrennt.
+function applyNetworkAccessToPartition(partition) {
+  const enabled = store.get('networkAccess', true);
+  try {
+    const ses = session.fromPartition(partition);
+    ses.webRequest.onBeforeRequest((details, cb) => {
+      cb({ cancel: !store.get('networkAccess', true) });
+    });
+    if (!enabled) console.log('[Netzgabe] Partition gesperrt:', partition);
+  } catch (e) { console.log('[Netzgabe] Fehler:', e.message); }
+}
+
+function applyNetworkAccessAll() {
+  const parts = new Set();
+  store.get('connectors', []).forEach(c => c.partition && parts.add(c.partition));
+  store.get('rightApps', []).forEach(a => a.partition && parts.add(a.partition));
+  parts.forEach(p => applyNetworkAccessToPartition(p));
+}
+
+ipcMain.on('set-network-access', (_, enabled) => {
+  store.set('networkAccess', !!enabled);
+  applyNetworkAccessAll();
+});
+
 // ── Local desktop apps (e.g. Perfect Memory) ─────────────────
 // Resolves a Start-menu app by name via Get-StartApps and launches it.
 ipcMain.handle('launch-local-app', (_, appName) => new Promise(resolve => {
@@ -396,6 +444,6 @@ function autoUpdateRepo() {
 
 // ── App lifecycle ────────────────────────────────────────────
 
-app.on('ready', () => { createMainWindow(); autoUpdateRepo(); });
+app.on('ready', () => { createMainWindow(); applyNetworkAccessAll(); autoUpdateRepo(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (!mainWindow) createMainWindow(); });

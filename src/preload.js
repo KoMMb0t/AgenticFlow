@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('api', {
   projectsGet:    ()      => ipcRenderer.invoke('projects-get'),
   projectCreate:  p       => ipcRenderer.invoke('project-create', p),
   projectUpdate:  (id, u) => ipcRenderer.invoke('project-update', { id, updates: u }),
+  projectDelete:  id      => ipcRenderer.invoke('project-delete', id),
   setActiveProject: id    => ipcRenderer.send('set-active-project', id),
   projectAddMessage: (pid, msg) => ipcRenderer.send('project-add-message', { projectId: pid, message: msg }),
 
@@ -75,6 +76,7 @@ contextBridge.exposeInMainWorld('api', {
   getWifiInfo:    () => ipcRenderer.invoke('get-wifi-info'),
   scanNetwork:    () => ipcRenderer.invoke('scan-network'),
   getBtDevices:   () => ipcRenderer.invoke('get-bt-devices'),
+  setNetworkAccess: enabled => ipcRenderer.send('set-network-access', enabled),
 
   // ── BLE ───────────────────────────────────────────────
   bleGetDevices:    ()          => ipcRenderer.invoke('ble-get-devices'),

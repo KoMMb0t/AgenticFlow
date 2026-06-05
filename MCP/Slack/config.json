@@ -1,0 +1,17 @@
+{
+  "server": {
+    "name": "Slack MCP Server",
+    "version": "1.0.0",
+    "description": "Slack Bot Integration für AgenticFlow"
+  },
+  "slack": {
+    "api_url": "https://slack.com/api",
+    "timeout_ms": 30000
+  },
+  "tools": {
+    "message_operations": { "enabled": true },
+    "channel_operations": { "enabled": true },
+    "user_operations": { "enabled": true },
+    "system_operations": { "enabled": true }
+  }
+}

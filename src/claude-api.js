@@ -95,9 +95,9 @@ async function geminiChat({ messages, model, apiKey, system }) {
 function registerHandlers(store) {
 
   // Single message (non-streaming) — for agent delegation etc.
-  ipcMain.handle('claude-message', async (event, { agentRole, messages, model, apiKey, provider }) => {
+  ipcMain.handle('claude-message', async (event, { agentRole, messages, model, apiKey, provider, system, maxTokens }) => {
     try {
-      const systemPrompt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
+      const systemPrompt = system || AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
       if (provider === 'openai') {
         const r = await openaiChat({ messages, model, apiKey, system: systemPrompt });
@@ -111,7 +111,7 @@ function registerHandlers(store) {
       const c = getClient(apiKey || store.get('claudeApiKey'));
       const response = await c.messages.create({
         model:      model || 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: maxTokens || 4096,
         system:     systemPrompt,
         messages,
       });
@@ -123,9 +123,9 @@ function registerHandlers(store) {
   });
 
   // Streaming message — sends chunks back to renderer
-  ipcMain.on('claude-stream', async (event, { agentRole, messages, model, apiKey, streamId, provider }) => {
+  ipcMain.on('claude-stream', async (event, { agentRole, messages, model, apiKey, streamId, provider, system }) => {
     try {
-      const systemPromptAlt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
+      const systemPromptAlt = system || AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
       // OpenAI / Gemini: nicht-streamend, Antwort als ein Chunk
       if (provider === 'openai' || provider === 'gemini') {
@@ -137,7 +137,7 @@ function registerHandlers(store) {
       }
 
       const c = getClient(apiKey || store.get('claudeApiKey'));
-      const systemPrompt = AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
+      const systemPrompt = system || AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
       const stream = await c.messages.create({
         model:      model || 'claude-sonnet-4-6',
@@ -197,15 +197,22 @@ function registerHandlers(store) {
     const projects = store.get('projects', []);
     const newProject = {
       ...project,
-      id:        `proj_${Date.now()}`,
-      createdAt: Date.now(),
+      id:        project.id || `proj_${Date.now()}`, // Renderer-ID übernehmen!
+      createdAt: project.createdAt || Date.now(),
       agents:    project.agents || [],
-      tasks:     [],
-      chatHistory: [],
+      tasks:     project.tasks  || [],
+      messages:  project.messages || [],
     };
     projects.push(newProject);
     store.set('projects', projects);
     return newProject;
+  });
+
+  ipcMain.handle('project-delete', (event, id) => {
+    const projects = store.get('projects', []).filter(p => p.id !== id);
+    store.set('projects', projects);
+    if (store.get('activeProjectId') === id) store.set('activeProjectId', null);
+    return true;
   });
 
   ipcMain.handle('project-update', (event, { id, updates }) => {
@@ -219,10 +226,13 @@ function registerHandlers(store) {
     const projects = store.get('projects', []);
     const idx = projects.findIndex(p => p.id === projectId);
     if (idx >= 0) {
-      projects[idx].chatHistory = projects[idx].chatHistory || [];
-      projects[idx].chatHistory.push(message);
-      if (projects[idx].chatHistory.length > 1000)
-        projects[idx].chatHistory.splice(0, projects[idx].chatHistory.length - 1000);
+      // v1.0-Schema: Nachrichten liegen in `messages` (Renderer ist führend)
+      projects[idx].messages = projects[idx].messages || projects[idx].chatHistory || [];
+      delete projects[idx].chatHistory;
+      projects[idx].messages.push(message);
+      if (projects[idx].messages.length > 1000)
+        projects[idx].messages.splice(0, projects[idx].messages.length - 1000);
+      projects[idx].updatedAt = new Date().toISOString();
       store.set('projects', projects);
     }
   });

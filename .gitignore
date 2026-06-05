@@ -2,3 +2,14 @@
 dist/
 .env
 *.log
+
+# Geheimnisse / API-Schlüssel — niemals committen
+AgenticLFlow API Keys.txt
+*API Keys*.txt
+*.key
+secrets/
+
+# Versehentlich verschachtelter Ordner (alter Snapshot vom 05:29)
+/AgenticFlow/
+# Alte Icon-Backups
+assets/backup_old_icons/

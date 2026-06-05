@@ -228,11 +228,15 @@ class KeyToolsManager {
     $('kt-link-overlay')?.classList.remove('open');
   }
 
-  _toggleSharePanel() {
+  _toggleSharePanel(preselectService) {
     const panel = $('kt-share-panel'), overlay = $('kt-share-overlay');
     const open = panel.classList.contains('open');
-    if (open) { this._closeSharePanel(); return; }
+    if (open && !preselectService) { this._closeSharePanel(); return; }
     this._closeLinkPanel();
+    if (preselectService) {
+      const sel = $('kt-share-service');
+      if (sel && [...sel.options].some(o => o.value === preselectService)) sel.value = preselectService;
+    }
     panel.classList.add('open'); overlay.classList.add('open');
     setTimeout(() => $('kt-share-input')?.focus(), 80);
   }
