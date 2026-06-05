@@ -89,15 +89,47 @@
         </div>
       </div>
 
-      <!-- Bluetooth -->
+      <!-- BLE / Bluetooth Geräte -->
       <div class="local-section">
-        <div class="local-sec-title">🔵 Bluetooth</div>
-        <div id="bt-devices" class="local-list">
-          <div class="empty-hint" style="padding:4px 8px">Nicht verfügbar</div>
+        <div class="local-sec-title-row">
+          <span class="local-sec-title">🔵 BLE &amp; Bluetooth</span>
+          <div class="ble-header-actions">
+            <button class="ble-mini-btn" id="btn-ble-scan" title="BLE scannen">⟳</button>
+            <button class="ble-mini-btn" id="btn-ble-login" title="Login mit Gerät">🔓</button>
+          </div>
+        </div>
+
+        <!-- Adapter Status -->
+        <div id="ble-adapter-row" class="local-item">
+          <span class="local-dot dot-checking"></span>
+          <span id="ble-adapter-name">BT-Adapter</span>
+          <button class="ble-power-btn" id="ble-power-btn" title="Bluetooth ein/aus">⏻</button>
+        </div>
+
+        <!-- Geräteliste -->
+        <div id="ble-devices" class="local-list">
+          <div class="empty-hint" style="padding:4px 14px">Scannen…</div>
         </div>
       </div>
 
     </div>
+
+    <!-- BLE Login Panel (Slide-in) -->
+    <div id="ble-login-panel" style="display:none">
+      <div class="blp-header">
+        <span>🔓 BLE Login</span>
+        <button id="blp-close">✕</button>
+      </div>
+      <div class="blp-body">
+        <p class="blp-hint">Gerät als Login-Schlüssel pairen — wenn es in Reichweite ist, wirst du automatisch eingeloggt.</p>
+        <div class="blp-section-title">Gekoppelte Login-Geräte</div>
+        <div id="blp-paired-list"></div>
+        <div class="blp-section-title" style="margin-top:10px">Verfügbare Geräte</div>
+        <div id="blp-available-list"></div>
+      </div>
+    </div>
+
+  </aside>
 
   </aside>
 

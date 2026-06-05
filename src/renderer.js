@@ -786,9 +786,35 @@ async function loadNetworkDevices() {
 }
 
 async function loadBluetooth() {
-  const devices = await window.api.getBtDevices().catch(() => []);
-  const list    = $('bt-devices');
+  await loadBleDevices();
+}
+
+// ── BLE ────────────────────────────────────────────────────
+let bleLoginPairs = [];
+
+async function loadBleAdapter() {
+  const info = await window.api.bleAdapterInfo().catch(() => ({ name: 'BT-Adapter', status: 'Unknown' }));
+  const row  = $('ble-adapter-row');
+  const nm   = $('ble-adapter-name');
+  const btn  = $('ble-power-btn');
+  if (!row) return;
+  const on = info.status === 'OK';
+  row.querySelector('.local-dot').className = `local-dot ${on ? 'dot-online' : 'dot-offline'}`;
+  if (nm) nm.textContent = info.name;
+  if (btn) btn.classList.toggle('on', on);
+}
+
+async function loadBleDevices() {
+  await loadBleAdapter();
+  const list    = $('ble-devices');
   if (!list) return;
+  list.innerHTML = `<div class="empty-hint" style="padding:4px 14px">Scannen…</div>`;
+
+  const [devices, loginPairs] = await Promise.all([
+    window.api.bleGetDevices().catch(() => []),
+    window.api.bleGetLoginPairs().catch(() => []),
+  ]);
+  bleLoginPairs = loginPairs;
 
   if (!devices.length) {
     list.innerHTML = `<div class="empty-hint" style="padding:4px 14px">Keine BT-Geräte</div>`;
@@ -797,14 +823,168 @@ async function loadBluetooth() {
 
   list.innerHTML = '';
   devices.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'local-device';
-    el.innerHTML = `
-      <span class="local-dot dot-bt"></span>
-      <span class="local-name">${esc(d.name || 'Unbekannt')}</span>
-      <span class="local-type">${d.status === 'OK' ? '✓' : ''}</span>`;
+    const isLogin = loginPairs.some(p => p.deviceId === d.id);
+    const el      = document.createElement('div');
+    el.className  = `ble-device${isLogin ? ' login' : ''}`;
+    el.title      = d.id;
+    el.innerHTML  = `
+      <span class="ble-icon">${d.icon || '🔵'}</span>
+      <div class="ble-info">
+        <div class="ble-name">${esc(d.name)}</div>
+        <div class="ble-meta">${d.isBle ? 'BLE' : 'BT Classic'}${isLogin ? ' · 🔑 Login' : ''}</div>
+      </div>
+      <button class="ble-pair-btn ${isLogin ? 'as-login' : ''}"
+        data-id="${d.id}" data-name="${esc(d.name)}" data-type="${d.type}">
+        ${isLogin ? '🔑 Login' : '+ Pairen'}
+      </button>`;
+
+    el.querySelector('.ble-pair-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      if (isLogin) openBleLoginPanel();
+      else pairDeviceForLogin(d);
+    });
     list.appendChild(el);
   });
+}
+
+async function pairDeviceForLogin(device) {
+  await window.api.blePairForLogin({
+    deviceId:   device.id,
+    deviceName: device.name,
+    deviceType: device.type,
+  });
+  showNotif(`✅ ${device.name} als Login-Gerät gespeichert`);
+  loadBleDevices();
+  loadBleLoginPanel();
+}
+
+// ── BLE Login Panel ───────────────────────────────────────
+function openBleLoginPanel() {
+  $('ble-login-panel').style.display = 'flex';
+  loadBleLoginPanel();
+}
+
+async function loadBleLoginPanel() {
+  const [pairs, allDevices] = await Promise.all([
+    window.api.bleGetLoginPairs().catch(() => []),
+    window.api.bleGetDevices().catch(() => []),
+  ]);
+  bleLoginPairs = pairs;
+
+  // Paired devices
+  const pairedList = $('blp-paired-list');
+  if (pairedList) {
+    pairedList.innerHTML = '';
+    if (!pairs.length) {
+      pairedList.innerHTML = `<div class="empty-hint">Noch keine Login-Geräte gepaired.</div>`;
+    } else {
+      pairs.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'blp-device is-login';
+        const icon = {watch:'⌚',headphone:'🎧',phone:'📱',keyboard:'⌨',mouse:'🖱',speaker:'🔊',computer:'💻',ble:'📡',device:'🔵'}[p.deviceType] || '🔵';
+        el.innerHTML = `
+          <span class="blp-device-icon">${icon}</span>
+          <div class="blp-device-info">
+            <div class="blp-device-name">${esc(p.deviceName)}</div>
+            <div class="blp-device-sub">Gepairt ${relDate(p.pairedAt)}</div>
+          </div>
+          <button class="blp-action check" data-check="${p.deviceId}">🔍 Check</button>
+          <button class="blp-action unpair" data-unpair="${p.deviceId}">Entfernen</button>`;
+
+        el.querySelector('[data-check]').addEventListener('click', async () => {
+          const btn = el.querySelector('[data-check]');
+          btn.textContent = '…';
+          const result = await window.api.bleLoginCheck(p.deviceId);
+          if (result.success) {
+            btn.textContent = '✅ OK';
+            showNotif(`✅ ${p.deviceName} in Reichweite — Login erfolgreich`);
+          } else {
+            btn.textContent = '❌';
+            showNotif(`❌ ${p.deviceName} nicht erreichbar`);
+          }
+          setTimeout(() => btn.textContent = '🔍 Check', 3000);
+        });
+        el.querySelector('[data-unpair]').addEventListener('click', async () => {
+          await window.api.bleUnpairLogin(p.deviceId);
+          showNotif(`🔓 ${p.deviceName} entfernt`);
+          loadBleDevices();
+          loadBleLoginPanel();
+        });
+        pairedList.appendChild(el);
+      });
+    }
+  }
+
+  // Available (not yet paired)
+  const availList = $('blp-available-list');
+  if (availList) {
+    availList.innerHTML = '';
+    const unpaired = allDevices.filter(d => !pairs.some(p => p.deviceId === d.id));
+    if (!unpaired.length) {
+      availList.innerHTML = `<div class="empty-hint">Alle verfügbaren Geräte sind bereits gepaired.</div>`;
+    } else {
+      unpaired.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'blp-device';
+        el.innerHTML = `
+          <span class="blp-device-icon">${d.icon || '🔵'}</span>
+          <div class="blp-device-info">
+            <div class="blp-device-name">${esc(d.name)}</div>
+            <div class="blp-device-sub">${d.isBle ? 'BLE' : 'BT Classic'}</div>
+          </div>
+          <button class="blp-action pair" data-pair="${d.id}">+ Als Login</button>`;
+
+        el.querySelector('[data-pair]').addEventListener('click', async () => {
+          await pairDeviceForLogin(d);
+        });
+        availList.appendChild(el);
+      });
+    }
+  }
+}
+
+// BLE-Buttons
+$('btn-ble-scan')?.addEventListener('click', async () => {
+  const btn = $('btn-ble-scan');
+  btn?.classList.add('spinning');
+  await loadBleDevices();
+  btn?.classList.remove('spinning');
+});
+
+$('btn-ble-login')?.addEventListener('click', () => openBleLoginPanel());
+
+$('blp-close')?.addEventListener('click', () => {
+  $('ble-login-panel').style.display = 'none';
+});
+
+$('ble-power-btn')?.addEventListener('click', async () => {
+  const btn = $('ble-power-btn');
+  const on  = btn?.classList.contains('on');
+  await window.api.bleSetPower(!on);
+  setTimeout(loadBleAdapter, 1000);
+});
+
+// Kleine Toast-Notification
+function showNotif(msg) {
+  let n = $('notif-toast');
+  if (!n) {
+    n = document.createElement('div');
+    n.id = 'notif-toast';
+    n.style.cssText = `
+      position:fixed; bottom:70px; right:70px; z-index:2000;
+      background:var(--bg-p); border:1px solid var(--bd2);
+      border-radius:9px; padding:10px 16px;
+      font-size:12px; color:var(--txt);
+      box-shadow:0 6px 24px rgba(0,0,0,.5);
+      animation:slideUp .18s ease;
+      max-width:260px; pointer-events:none;
+    `;
+    document.body.appendChild(n);
+  }
+  n.textContent = msg;
+  n.style.display = 'block';
+  clearTimeout(n._t);
+  n._t = setTimeout(() => { if (n) n.style.display = 'none'; }, 3000);
 }
 
 function guessDeviceIcon(ip, mac) {

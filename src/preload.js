@@ -74,4 +74,14 @@ contextBridge.exposeInMainWorld('api', {
   getWifiInfo:    () => ipcRenderer.invoke('get-wifi-info'),
   scanNetwork:    () => ipcRenderer.invoke('scan-network'),
   getBtDevices:   () => ipcRenderer.invoke('get-bt-devices'),
+
+  // ── BLE ───────────────────────────────────────────────
+  bleGetDevices:    ()          => ipcRenderer.invoke('ble-get-devices'),
+  bleScan:          ()          => ipcRenderer.invoke('ble-scan'),
+  bleAdapterInfo:   ()          => ipcRenderer.invoke('ble-adapter-info'),
+  bleSetPower:      (on)        => ipcRenderer.invoke('ble-set-power', on),
+  blePairForLogin:  (data)      => ipcRenderer.invoke('ble-pair-for-login', data),
+  bleUnpairLogin:   (id)        => ipcRenderer.invoke('ble-unpair-login', id),
+  bleGetLoginPairs: ()          => ipcRenderer.invoke('ble-get-login-pairs'),
+  bleLoginCheck:    (deviceId)  => ipcRenderer.invoke('ble-login-check', deviceId),
 });

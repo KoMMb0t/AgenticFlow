@@ -615,6 +615,104 @@ html, body {
 .ctx-danger:hover { background: rgba(224,85,85,.12); }
 .ctx-div { height: 1px; background: var(--bd); margin: 4px 0; }
 
+/* ── BLE PANEL ───────────────────────────────────────────── */
+.local-sec-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 14px 3px;
+}
+.ble-header-actions { display: flex; gap: 4px; }
+
+.ble-mini-btn {
+  width: 22px; height: 22px;
+  background: var(--bg-card); border: 1px solid var(--bd);
+  border-radius: 5px; color: var(--txt-d); font-size: 12px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .12s;
+}
+.ble-mini-btn:hover { background: var(--acc); border-color: var(--acc); color: #fff; }
+.ble-mini-btn.spinning { animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ble-power-btn {
+  margin-left: auto; width: 20px; height: 20px;
+  background: transparent; border: 1px solid var(--bd);
+  border-radius: 4px; color: var(--txt-d); font-size: 11px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .12s; flex-shrink: 0;
+}
+.ble-power-btn:hover  { background: var(--danger); border-color: var(--danger); color: #fff; }
+.ble-power-btn.on     { border-color: var(--success); color: var(--success); }
+
+.ble-device {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; cursor: pointer;
+  transition: background .1s; border-left: 2px solid transparent;
+}
+.ble-device:hover  { background: var(--bg-h); }
+.ble-device.paired { border-left-color: var(--success); }
+.ble-device.login  { border-left-color: var(--acc); }
+
+.ble-icon { font-size: 16px; flex-shrink: 0; }
+.ble-info { flex: 1; min-width: 0; }
+.ble-name { font-size: 11.5px; font-weight: 500; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ble-meta { font-size: 10px; color: var(--txt-d); }
+
+.ble-pair-btn {
+  height: 20px; padding: 0 7px; flex-shrink: 0;
+  background: var(--bg-act); border: 1px solid var(--bd2);
+  border-radius: 4px; color: var(--txt-d); font-size: 10px;
+  cursor: pointer; transition: all .12s; white-space: nowrap;
+}
+.ble-pair-btn:hover       { background: var(--acc); border-color: var(--acc); color: #fff; }
+.ble-pair-btn.as-login    { border-color: var(--acc-dim); color: var(--acc2); }
+.ble-pair-btn.as-login:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* BLE Login panel (slide-in over bottom of left sidebar) */
+#ble-login-panel {
+  position: absolute; inset: 0;
+  background: var(--bg-p); z-index: 50;
+  display: flex; flex-direction: column;
+  border-top: 1px solid var(--bd);
+  animation: slideUp .18s ease;
+}
+.blp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--bd); flex-shrink: 0;
+  font-size: 13px; font-weight: 600;
+}
+.blp-header button {
+  width: 24px; height: 24px; background: transparent; border: 1px solid var(--bd);
+  border-radius: 5px; color: var(--txt-d); font-size: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all .12s;
+}
+.blp-header button:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+.blp-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
+.blp-hint { font-size: 11px; color: var(--txt-d); line-height: 1.6; margin-bottom: 10px; }
+.blp-section-title { font-size: 10px; font-weight: 700; color: var(--txt-d); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+
+.blp-device {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px;
+  background: var(--bg-card); border: 1px solid var(--bd);
+  border-radius: 8px; margin-bottom: 5px;
+}
+.blp-device.is-login { border-color: var(--acc-dim); background: rgba(108,99,255,.06); }
+.blp-device-icon { font-size: 18px; flex-shrink: 0; }
+.blp-device-info { flex: 1; min-width: 0; }
+.blp-device-name { font-size: 12px; font-weight: 500; color: var(--txt); }
+.blp-device-sub  { font-size: 10px; color: var(--txt-d); }
+.blp-action {
+  height: 24px; padding: 0 9px; flex-shrink: 0;
+  border: 1px solid var(--bd2); border-radius: 5px;
+  font-size: 11px; cursor: pointer; transition: all .12s;
+}
+.blp-action.pair   { background: var(--acc); border-color: var(--acc); color: #fff; }
+.blp-action.pair:hover { background: var(--acc2); }
+.blp-action.unpair { background: transparent; color: var(--danger); border-color: var(--danger); }
+.blp-action.unpair:hover { background: rgba(224,85,85,.15); }
+.blp-action.check  { background: var(--success); border-color: var(--success); color: #fff; }
+.blp-action.check:hover { opacity: .85; }
+
 /* ── API KEY TOOL ────────────────────────────────────────── */
 #apikey-fab {
   position: fixed;

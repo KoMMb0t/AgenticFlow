@@ -6,7 +6,8 @@
 const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, shell } = require('electron');
 const path  = require('path');
 const Store = require('electron-store');
-const { registerHandlers } = require('./claude-api');
+const { registerHandlers }    = require('./claude-api');
+const { registerBleHandlers } = require('./ble');
 
 const store = new Store({
   defaults: {
@@ -29,6 +30,7 @@ const store = new Store({
 
 // Register Claude API & memory handlers
 registerHandlers(store);
+registerBleHandlers(store);
 
 // ── Connector templates (left sidebar) ──────────────────────
 const CONNECTOR_TEMPLATES = [
