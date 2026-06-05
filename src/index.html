@@ -12,8 +12,8 @@
 <!-- ══ HEADER ══════════════════════════════════════════════ -->
 <header id="header">
   <div class="h-left">
-    <button class="toggle-btn" id="left-toggle" title="Linkes Panel">
-      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".45"/><rect x="7" y="1" width="6" height="12" rx="1" fill="currentColor"/></svg>
+    <button class="toggle-btn" id="left-toggle">
+      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".4"/><rect x="7" y="1" width="6" height="12" rx="1" fill="currentColor"/></svg>
     </button>
     <span class="logo">⚡ AgenticFlow</span>
   </div>
@@ -26,8 +26,8 @@
 
   <div class="h-right">
     <button class="hbtn" id="btn-settings" title="Einstellungen">⚙</button>
-    <button class="toggle-btn" id="right-toggle" title="Rechtes Panel">
-      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="6" height="12" rx="1" fill="currentColor"/><rect x="9" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".45"/></svg>
+    <button class="toggle-btn" id="right-toggle">
+      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="6" height="12" rx="1" fill="currentColor"/><rect x="9" y="1" width="4" height="12" rx="1" fill="currentColor" opacity=".4"/></svg>
     </button>
   </div>
 </header>
@@ -35,48 +35,41 @@
 <!-- ══ LAYOUT ═══════════════════════════════════════════════ -->
 <div id="layout">
 
-  <!-- ── LEFT: Cloud-Konneктoren ─────────────────────────── -->
+  <!-- ── LEFT SIDEBAR ────────────────────────────────────── -->
   <aside id="left-panel">
     <div id="left-inner">
-
       <div class="section">
-        <div class="sec-hdr">
-          <span class="sec-title">☁ Cloud-Speicher</span>
-          <button class="ico-btn" id="add-cloud-btn">+</button>
-        </div>
-        <div class="conn-list" id="cloud-list"><div class="empty-hint">Konnektoren per + hinzufügen</div></div>
+        <div class="sec-hdr"><span class="sec-title">☁ Cloud-Speicher</span></div>
+        <div class="conn-list" id="cloud-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
       </div>
-
       <div class="divider"></div>
-
       <div class="section">
-        <div class="sec-hdr">
-          <span class="sec-title">🔧 Dienste</span>
-          <button class="ico-btn" id="add-service-btn">+</button>
-        </div>
-        <div class="conn-list" id="service-list"><div class="empty-hint">Konnektoren per + hinzufügen</div></div>
+        <div class="sec-hdr"><span class="sec-title">🔧 Dienste</span></div>
+        <div class="conn-list" id="service-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
       </div>
-
+      <div class="divider"></div>
+      <div class="section">
+        <div class="sec-hdr"><span class="sec-title">🤖 KI-Agenten</span></div>
+        <div class="conn-list" id="agent-conn-list"><div class="empty-hint">Unten im Chat verbinden ↓</div></div>
+      </div>
     </div>
   </aside>
 
   <!-- ── CENTER ──────────────────────────────────────────── -->
   <main id="center-panel">
 
-    <!-- HOME: Projekte-Übersicht -->
+    <!-- HOME VIEW -->
     <div id="view-home">
       <div class="home-header">
         <h1>🏠 Projekte</h1>
         <button class="btn-primary" id="btn-new-project">+ Neues Projekt</button>
       </div>
       <div id="project-grid" class="project-grid"></div>
-
-      <!-- Welcome wenn keine Projekte -->
       <div id="home-welcome" class="home-welcome" style="display:none">
         <div class="hw-glow"></div>
         <div class="hw-icon">⚡</div>
         <h2>Willkommen bei AgenticFlow</h2>
-        <p>Erstelle dein erstes Projekt und lass den Architect-Agenten mit Claude API für dich arbeiten.</p>
+        <p>Erstelle ein Projekt, verbinde Apps über den Chat-Footer und lass den Architect-Agenten mit Claude API für dich arbeiten.</p>
         <div class="hw-chips">
           <span class="chip">🏗 Architect delegiert</span>
           <span class="chip">🤖 Agenten arbeiten</span>
@@ -87,8 +80,9 @@
       </div>
     </div>
 
-    <!-- PROJECT: Architect-Chat + Agent-Monitor -->
+    <!-- PROJECT VIEW -->
     <div id="view-project" style="display:none">
+
       <div id="project-topbar">
         <div class="ptb-left">
           <button class="back-btn" id="btn-back-home">← Projekte</button>
@@ -96,161 +90,139 @@
           <span id="proj-status" class="status-badge status-idle">bereit</span>
         </div>
         <div class="ptb-right">
-          <button class="hbtn" id="btn-proj-settings" title="Projekt-Einstellungen">⚙</button>
+          <select id="architect-model" class="model-sel">
+            <option value="claude-opus-4-8">🏗 Opus 4.8</option>
+            <option value="claude-sonnet-4-6" selected>⚗ Sonnet 4.6</option>
+            <option value="claude-haiku-4-5-20251001">⚡ Haiku 4.5</option>
+          </select>
+          <button class="hbtn" id="btn-proj-settings">⚙</button>
         </div>
       </div>
 
-      <!-- Agent-Leiste -->
       <div id="agent-bar">
         <div id="agent-tabs">
           <button class="agent-tab agent-tab--active" data-agent="architect">
-            <span class="at-icon">🏗</span>
-            <span class="at-name">Architect</span>
-            <span class="at-status status-idle"></span>
+            <span class="at-icon">🏗</span><span class="at-name">Architect</span><span class="at-dot dot-idle"></span>
           </button>
           <button class="agent-tab" data-agent="researcher">
-            <span class="at-icon">🔍</span>
-            <span class="at-name">Researcher</span>
-            <span class="at-status status-idle"></span>
+            <span class="at-icon">🔍</span><span class="at-name">Researcher</span><span class="at-dot dot-idle"></span>
           </button>
           <button class="agent-tab" data-agent="coder">
-            <span class="at-icon">💻</span>
-            <span class="at-name">Coder</span>
-            <span class="at-status status-idle"></span>
+            <span class="at-icon">💻</span><span class="at-name">Coder</span><span class="at-dot dot-idle"></span>
           </button>
           <button class="agent-tab" data-agent="writer">
-            <span class="at-icon">✍</span>
-            <span class="at-name">Writer</span>
-            <span class="at-status status-idle"></span>
+            <span class="at-icon">✍</span><span class="at-name">Writer</span><span class="at-dot dot-idle"></span>
           </button>
           <button class="agent-tab" data-agent="analyst">
-            <span class="at-icon">📊</span>
-            <span class="at-name">Analyst</span>
-            <span class="at-status status-idle"></span>
+            <span class="at-icon">📊</span><span class="at-name">Analyst</span><span class="at-dot dot-idle"></span>
           </button>
         </div>
-        <div id="agent-model-select">
-          <select id="architect-model">
-            <option value="claude-opus-4-8">Opus 4.8 (Architect)</option>
-            <option value="claude-sonnet-4-6" selected>Sonnet 4.6</option>
-            <option value="claude-haiku-4-5-20251001">Haiku 4.5 (schnell)</option>
-          </select>
+      </div>
+
+      <div id="proj-messages" class="msg-area"></div>
+
+      <!-- ── CHAT FOOTER: Apps verbinden + Eingabe ── -->
+      <div id="chat-footer">
+        <div id="app-chips-bar" class="app-chips-bar">
+          <span class="chips-label">Verbunden:</span>
+          <div id="app-chips" class="app-chips-list"></div>
+          <button class="add-conn-btn" id="btn-add-connection">＋ Verbinden</button>
+        </div>
+        <div id="proj-input-row">
+          <textarea id="proj-input" placeholder="Aufgabe an Architect… (Enter = Senden, Shift+Enter = neue Zeile)" rows="1"></textarea>
+          <button id="proj-send-btn">
+            <svg width="15" height="15" viewBox="0 0 15 15"><path d="M13 7.5L2 2l2.5 5.5L2 13l11-5.5z" fill="currentColor"/></svg>
+          </button>
         </div>
       </div>
 
-      <!-- Chat-Bereich -->
-      <div id="proj-chat">
-        <div id="proj-messages"></div>
-        <div id="proj-footer">
-          <div id="proj-input-row">
-            <textarea id="proj-input" placeholder="Aufgabe an Architect… (Enter = Senden)" rows="1"></textarea>
-            <button id="proj-send-btn">➤</button>
-          </div>
+      <!-- BrowserView-Overlay-Bar -->
+      <div id="conn-overlay-bar" style="display:none">
+        <div class="cob-info">
+          <span id="cob-icon"></span><span id="cob-name"></span>
+          <span id="cob-label" class="badge"></span>
+        </div>
+        <div class="cob-actions">
+          <button class="svc-btn" id="cob-reload">↺</button>
+          <button class="svc-btn" id="cob-logout">⏻</button>
+          <button class="svc-btn svc-close" id="cob-close">✕ Zurück</button>
         </div>
       </div>
 
-      <!-- Connector-View overlay (wenn ein Connector aktiv) -->
-      <div id="connector-bar" style="display:none">
-        <div class="cb-info">
-          <span id="cb-icon"></span>
-          <span id="cb-name"></span>
-          <span id="cb-label" class="cb-badge"></span>
-        </div>
-        <div class="cb-actions">
-          <button class="svc-btn" id="cb-reload">↺</button>
-          <button class="svc-btn" id="cb-logout">⏻</button>
-          <button class="svc-btn svc-btn--close" id="cb-close">✕ Zurück</button>
-        </div>
-      </div>
     </div>
 
-    <!-- CONNECTOR VIEW (plain chat, kein Projekt) -->
+    <!-- STANDALONE CHAT -->
     <div id="view-chat" style="display:none">
-      <div id="svc-bar-simple" style="display:none">
-        <div class="cb-info">
-          <span id="svc-icon-s"></span><span id="svc-name-s"></span>
-          <span id="svc-label-s" class="cb-badge"></span>
-        </div>
-        <div class="cb-actions">
-          <button class="svc-btn" id="svc-reload-s">↺</button>
-          <button class="svc-btn" id="svc-logout-s">⏻</button>
-          <button class="svc-btn svc-btn--close" id="svc-close-s">✕ Zurück</button>
-        </div>
-      </div>
-      <div id="chat-messages">
+      <div id="chat-messages" class="msg-area">
         <div class="chat-welcome" id="chat-welcome">
           <div class="hw-glow"></div>
           <div class="hw-icon">⚡</div>
           <h2>AgenticFlow Chat</h2>
-          <p>Direkt mit einem KI-Modell chatten oder ein Projekt öffnen.</p>
+          <p>Direkt chatten. Apps unten verbinden — sie erscheinen als Links rechts.</p>
         </div>
       </div>
-      <div id="chat-footer">
-        <div id="chat-toolbar">
-          <select id="model-select">
-            <option value="claude-sonnet-4-6">⚗ Claude Sonnet 4.6</option>
-            <option value="claude-opus-4-8">⚗ Claude Opus 4.8</option>
-            <option value="claude-haiku-4-5-20251001">⚗ Claude Haiku 4.5</option>
-          </select>
-          <span id="token-count"></span>
+      <div id="chat-footer-sa">
+        <div id="app-chips-bar-sa" class="app-chips-bar">
+          <span class="chips-label">Verbunden:</span>
+          <div id="app-chips-sa" class="app-chips-list"></div>
+          <button class="add-conn-btn" id="btn-add-conn-sa">＋ Verbinden</button>
         </div>
-        <div id="input-row">
-          <textarea id="chat-input" placeholder="Nachricht… (Enter = Senden, Shift+Enter = Neue Zeile)" rows="1"></textarea>
-          <button id="send-btn">➤</button>
+        <div id="chat-input-row">
+          <select id="model-select" class="model-sel-sm">
+            <option value="claude-sonnet-4-6">⚗ Sonnet 4.6</option>
+            <option value="claude-opus-4-8">🏗 Opus 4.8</option>
+            <option value="claude-haiku-4-5-20251001">⚡ Haiku 4.5</option>
+          </select>
+          <textarea id="chat-input" placeholder="Nachricht… (Enter = Senden)" rows="1"></textarea>
+          <button id="send-btn">
+            <svg width="15" height="15" viewBox="0 0 15 15"><path d="M13 7.5L2 2l2.5 5.5L2 13l11-5.5z" fill="currentColor"/></svg>
+          </button>
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- ── RIGHT: Agenten & Apps + Perfect Memory ──────────── -->
+  <!-- ── RIGHT PANEL ─────────────────────────────────────── -->
   <aside id="right-panel">
 
-    <!-- Tabs: Agenten / Memory -->
     <div id="right-tabs">
-      <button class="rtab rtab--active" id="rtab-agents" data-tab="agents">🤖 Agenten</button>
-      <button class="rtab"              id="rtab-memory" data-tab="memory">🧠 Memory</button>
+      <button class="rtab rtab--active" data-tab="links">🔗 Links</button>
+      <button class="rtab"              data-tab="memory">🧠 Memory</button>
     </div>
 
-    <!-- Agenten-Tab -->
-    <div id="right-agents-view">
-      <div id="right-app-strip">
-        <div id="right-app-list"></div>
-        <button class="ico-btn" id="add-app-btn">+</button>
-      </div>
-      <div id="right-placeholder">
-        <div class="placeholder-body">
-          <div style="font-size:2rem">🤖</div>
-          <p>KI-Agenten & Apps verbinden</p>
-          <button id="add-app-ph-btn">+ Verbinden</button>
+    <!-- LINKS: Verbundene Apps öffnen -->
+    <div id="tab-links-view">
+      <div id="link-list-wrap">
+        <div id="link-list"></div>
+        <div id="link-empty" class="link-empty">
+          <div style="font-size:2.2rem;margin-bottom:8px">🔗</div>
+          <p>Verbinde Apps über den<br/>Chat-Footer — sie erscheinen hier als Links</p>
         </div>
       </div>
     </div>
 
-    <!-- Perfect Memory Tab -->
-    <div id="right-memory-view" style="display:none">
+    <!-- MEMORY -->
+    <div id="tab-memory-view" style="display:none">
       <div id="memory-header">
         <span>🧠 Perfect Memory</span>
         <button class="ico-btn" id="btn-add-memory">+</button>
       </div>
-      <div id="memory-chat">
+      <div id="memory-chat-area">
         <div id="memory-messages">
           <div class="memory-welcome">
-            <p>Ich bin dein <strong>Memory Agent</strong>.<br/>
-            Ich erinnere mich an alles und helfe dir, Wissen zu organisieren.</p>
+            <strong>Memory Agent</strong> — ich erinnere mich an alles.<br/>
+            Schreib <em>"Speichere: …"</em> oder stell mir eine Frage.
           </div>
         </div>
-        <div id="memory-footer">
-          <div id="memory-input-row">
-            <textarea id="memory-input" placeholder="Frag Memory… oder speichere etwas" rows="1"></textarea>
-            <button id="memory-send-btn">➤</button>
-          </div>
+        <div id="memory-input-wrap">
+          <textarea id="memory-input" placeholder="Frag Memory oder speichere etwas…" rows="1"></textarea>
+          <button id="memory-send-btn">➤</button>
         </div>
       </div>
       <div id="memory-list-section">
-        <div class="mem-list-header">
-          <span>Gespeicherte Einträge</span>
-          <span id="mem-count">0</span>
+        <div class="mem-list-hdr">
+          <span>Gespeichert</span><span id="mem-count" class="badge">0</span>
         </div>
         <div id="memory-entries"></div>
       </div>
@@ -259,94 +231,85 @@
   </aside>
 </div>
 
-<!-- ══ MODALS ════════════════════════════════════════════════ -->
-
-<!-- Connector / App Modal -->
-<div id="modal-overlay" style="display:none">
-  <div id="modal">
+<!-- ══ CONNECT MODAL ════════════════════════════════════════ -->
+<div id="connect-modal-overlay" style="display:none">
+  <div id="connect-modal">
     <div class="modal-header">
-      <h2 id="modal-title">Verbinden</h2>
-      <button id="modal-close">✕</button>
+      <h2 id="cm-title">App / Cloud verbinden</h2>
+      <button id="cm-close">✕</button>
     </div>
     <div class="modal-body">
-      <div id="tpl-step">
-        <div id="tpl-filter" class="tpl-filter"></div>
-        <div id="tpl-grid" class="tpl-grid"></div>
+      <div id="cm-step-1">
+        <div id="cm-filter" class="cm-filter"></div>
+        <div id="cm-grid"   class="tpl-grid"></div>
       </div>
-      <div id="form-step" style="display:none">
-        <div id="form-preview" class="form-preview"></div>
+      <div id="cm-step-2" style="display:none">
+        <div id="cm-preview" class="form-preview"></div>
         <label class="form-label">
-          Bezeichnung <span class="form-hint">(z.B. "Privat", "Arbeit")</span>
-          <input type="text" id="inp-label" class="form-input" placeholder="Account-Name…" autocomplete="off"/>
+          Account-Bezeichnung <span class="form-hint">(z.B. "Privat", "Arbeit")</span>
+          <input type="text" id="cm-label" class="form-input" placeholder="Mein Account…" autocomplete="off"/>
         </label>
-        <div id="inp-url-group" style="display:none">
-          <label class="form-label">URL<input type="url" id="inp-url" class="form-input" placeholder="https://…"/></label>
+        <div id="cm-url-group" style="display:none">
+          <label class="form-label">URL
+            <input type="url" id="cm-url" class="form-input" placeholder="https://…"/>
+          </label>
         </div>
         <div class="form-actions">
-          <button class="btn-sec" id="modal-back">← Zurück</button>
-          <button class="btn-primary" id="modal-create">Verbinden</button>
+          <button class="btn-sec" id="cm-back">← Zurück</button>
+          <button class="btn-primary" id="cm-create">↗ Verbinden</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Projekt-Modal -->
+<!-- ══ PROJEKT MODAL ════════════════════════════════════════ -->
 <div id="proj-modal-overlay" style="display:none">
   <div id="proj-modal">
     <div class="modal-header">
-      <h2>Neues Projekt</h2>
-      <button id="proj-modal-close">✕</button>
+      <h2>Neues Projekt</h2><button id="pm-close">✕</button>
     </div>
     <div class="modal-body">
-      <label class="form-label">
-        Projektname
-        <input type="text" id="proj-name-inp" class="form-input" placeholder="Mein Projekt…"/>
-      </label>
-      <label class="form-label">
-        Beschreibung (optional)
-        <textarea id="proj-desc-inp" class="form-input form-textarea" placeholder="Worum geht es in diesem Projekt?"></textarea>
-      </label>
-      <label class="form-label">
-        Architect-Modell
-        <select id="proj-model-inp" class="form-input">
-          <option value="claude-opus-4-8">Claude Opus 4.8 (empfohlen für Architect)</option>
+      <label class="form-label">Projektname
+        <input type="text" id="pm-name" class="form-input" placeholder="Mein Projekt…"/></label>
+      <label class="form-label">Beschreibung
+        <textarea id="pm-desc" class="form-input form-textarea" placeholder="Worum geht es?"></textarea></label>
+      <label class="form-label">Architect-Modell
+        <select id="pm-model" class="form-input">
+          <option value="claude-opus-4-8">Claude Opus 4.8</option>
           <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
-          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (schnell & günstig)</option>
-        </select>
-      </label>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+        </select></label>
       <div class="form-actions">
-        <button class="btn-sec" id="proj-modal-cancel">Abbrechen</button>
-        <button class="btn-primary" id="proj-modal-create">🏗 Projekt erstellen</button>
+        <button class="btn-sec" id="pm-cancel">Abbrechen</button>
+        <button class="btn-primary" id="pm-create">🏗 Erstellen</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Settings Modal -->
+<!-- ══ SETTINGS ═════════════════════════════════════════════ -->
 <div id="settings-overlay" style="display:none">
   <div id="settings-modal">
-    <div class="modal-header">
-      <h2>⚙ Einstellungen</h2>
-      <button id="settings-close">✕</button>
-    </div>
+    <div class="modal-header"><h2>⚙ Einstellungen</h2><button id="settings-close">✕</button></div>
     <div class="modal-body">
       <div class="settings-section">
-        <div class="settings-title">🔑 API-Keys</div>
-        <label class="form-label">
-          Anthropic API-Key (Claude)
-          <div class="api-key-row">
+        <div class="settings-title">🔑 Claude API-Key</div>
+        <label class="form-label">Anthropic API-Key
+          <div class="api-row">
             <input type="password" id="inp-claude-key" class="form-input" placeholder="sk-ant-…"/>
             <button class="btn-primary" id="save-claude-key">Speichern</button>
           </div>
         </label>
+        <div id="api-key-status" class="api-status"></div>
       </div>
       <div class="settings-section">
-        <div class="settings-title">ℹ️ Info</div>
-        <div class="settings-info">
-          AgenticFlow v0.1.0 — Claude API mit Opus 4.8 / Sonnet 4.6 / Haiku 4.5<br/>
-          Alle Daten werden lokal gespeichert.
-        </div>
+        <div class="settings-title">📱 Verbundene Dienste</div>
+        <div id="settings-conn-list"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title">ℹ Info</div>
+        <div class="settings-info">AgenticFlow v0.2.0 — alle Daten lokal gespeichert.</div>
       </div>
     </div>
   </div>
@@ -354,6 +317,7 @@
 
 <!-- Context Menu -->
 <div id="ctx-menu" style="display:none">
+  <button class="ctx-item" id="ctx-open">↗  Öffnen</button>
   <button class="ctx-item" id="ctx-reload">↺  Neu laden</button>
   <button class="ctx-item" id="ctx-logout">⏻  Abmelden</button>
   <div class="ctx-div"></div>
