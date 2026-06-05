@@ -96,6 +96,7 @@ function createMainWindow() {
     minWidth: 900, minHeight: 650,
     title: 'AgenticFlow',
     backgroundColor: '#09090f',
+    icon: path.join(__dirname, '..', 'assets', 'icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
