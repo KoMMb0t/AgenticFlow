@@ -817,6 +817,27 @@ const API_KEY_SERVICES = [
   // ── Entwicklung ────────────────────────────────────────────
   { section: '⚡ Entwicklung & Tools' },
   {
+    name: 'GitLab',
+    icon: '🦊', color: '#fc6d26',
+    desc: 'Personal Access Token für GitLab',
+    url:  'https://gitlab.com/-/user_settings/personal_access_tokens',
+    scope: 'Scopes: api, read_repo, write_repo'
+  },
+  {
+    name: 'Bitbucket',
+    icon: '🪣', color: '#0052cc',
+    desc: 'App Password für Bitbucket API',
+    url:  'https://bitbucket.org/account/settings/app-passwords/new',
+    scope: 'Permissions: Repositories → Read+Write'
+  },
+  {
+    name: 'Google Cloud',
+    icon: '☁', color: '#4285f4',
+    desc: 'Service Account Key oder API Key',
+    url:  'https://console.cloud.google.com/apis/credentials',
+    scope: 'Create Credentials → API Key oder Service Account'
+  },
+  {
     name: 'GitHub',
     icon: '⚡', color: '#58a6ff',
     desc: 'Personal Access Token (Classic) mit repo-Scope',
@@ -843,6 +864,20 @@ const API_KEY_SERVICES = [
     desc: 'Bot Token für Workspace-Zugriff',
     url:  'https://api.slack.com/apps',
     scope: 'Create App → OAuth → xoxb Token'
+  },
+  {
+    name: 'kChat (Infomaniak)',
+    icon: '💬', color: '#1a73e8',
+    desc: 'Infomaniak kChat API Token',
+    url:  'https://manager.infomaniak.com/v3/profile/api-token',
+    scope: 'Token erstellen → kChat-Zugriff'
+  },
+  {
+    name: 'Infomaniak Mail',
+    icon: '📮', color: '#1a73e8',
+    desc: 'Infomaniak Mail API / IMAP-Zugang',
+    url:  'https://manager.infomaniak.com/v3/profile/api-token',
+    scope: 'API Token → Mail-Dienste'
   },
 
   // ── Kommunikation ──────────────────────────────────────────

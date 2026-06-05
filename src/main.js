@@ -41,11 +41,15 @@ const CONNECTOR_TEMPLATES = [
   { id: 'nextcloud',    name: 'Nextcloud',      url: '',                            icon: '🌩',  color: '#0082c9', cat: 'cloud'   },
   { id: 'icloud',       name: 'iCloud',         url: 'https://www.icloud.com',      icon: '🍎', color: '#888',    cat: 'cloud'   },
   // 📧 Kommunikation
-  { id: 'gmail',        name: 'Gmail',          url: 'https://mail.google.com',     icon: '✉',  color: '#ea4335', cat: 'comms'   },
-  { id: 'outlook',      name: 'Outlook',        url: 'https://outlook.live.com',    icon: '📧', color: '#0078d4', cat: 'comms'   },
-  { id: 'protonmail',   name: 'ProtonMail',     url: 'https://mail.proton.me',      icon: '🛡',  color: '#6d4aff', cat: 'comms'   },
+  { id: 'gmail',           name: 'Gmail',            url: 'https://mail.google.com',              icon: '✉',  color: '#ea4335', cat: 'comms'   },
+  { id: 'outlook',         name: 'Outlook',          url: 'https://outlook.live.com',             icon: '📧', color: '#0078d4', cat: 'comms'   },
+  { id: 'protonmail',      name: 'ProtonMail',       url: 'https://mail.proton.me',               icon: '🛡',  color: '#6d4aff', cat: 'comms'   },
+  { id: 'infomaniak-mail', name: 'Infomaniak Mail',  url: 'https://mail.infomaniak.com',          icon: '📮', color: '#1a73e8', cat: 'comms'   },
   // 🔧 Entwicklung / Tools
-  { id: 'github',       name: 'GitHub',         url: 'https://github.com',          icon: '⚡', color: '#58a6ff', cat: 'dev'     },
+  { id: 'github',          name: 'GitHub',           url: 'https://github.com',                   icon: '⚡', color: '#58a6ff', cat: 'dev'     },
+  { id: 'gitlab',          name: 'GitLab',           url: 'https://gitlab.com',                   icon: '🦊', color: '#fc6d26', cat: 'dev'     },
+  { id: 'bitbucket',       name: 'Bitbucket',        url: 'https://bitbucket.org',                icon: '🪣', color: '#0052cc', cat: 'dev'     },
+  { id: 'google-cloud',    name: 'Google Cloud',     url: 'https://console.cloud.google.com',     icon: '☁',  color: '#4285f4', cat: 'dev'     },
   { id: 'notion',       name: 'Notion',         url: 'https://notion.so',           icon: 'N',  color: '#fff',    cat: 'tool'    },
   { id: 'trello',       name: 'Trello',         url: 'https://trello.com',          icon: '📋', color: '#0052cc', cat: 'tool'    },
   { id: 'figma',        name: 'Figma',          url: 'https://figma.com',           icon: '🎨', color: '#a259ff', cat: 'tool'    },
@@ -68,6 +72,7 @@ const RIGHT_TEMPLATES = [
   { id: 'discord',      name: 'Discord',        url: 'https://discord.com/app',      icon: 'D',  color: '#5865f2', cat: 'comms'   },
   { id: 'telegram',     name: 'Telegram',       url: 'https://web.telegram.org',     icon: 'T',  color: '#0088cc', cat: 'comms'   },
   { id: 'whatsapp',     name: 'WhatsApp',       url: 'https://web.whatsapp.com',     icon: 'W',  color: '#25d366', cat: 'comms'   },
+  { id: 'kchat',        name: 'kChat',          url: 'https://kchat.infomaniak.com', icon: '💬', color: '#1a73e8', cat: 'comms'   },
   { id: 'twitter',      name: 'X / Twitter',    url: 'https://x.com',               icon: 'X',  color: '#e7e9ea', cat: 'social'  },
   { id: 'custom',       name: 'Benutzerdefiniert', url: '',                          icon: '⚙',  color: '#888',    cat: 'custom'  },
 ];
