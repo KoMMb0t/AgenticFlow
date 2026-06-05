@@ -41,7 +41,7 @@ class LeftSidebarManager {
       if (!listId) continue;
       const list = $(listId);
       if (!list) continue;
-      const accounts = accountMgr.getByCategory(cat);
+      const accounts = accountMgr.getByCategory(cat).filter(a => !a.hidden);
       list.innerHTML = '';
       if (!accounts.length) {
         list.innerHTML = '<div class="empty-hint">Noch nichts verbunden</div>';
@@ -76,31 +76,65 @@ class LeftSidebarManager {
 
   makeItem(acc) {
     const el = document.createElement('div');
-    el.className = `app-item${acc.opened ? ' active' : ''}${accountMgr.isFavorite(acc.instanceId) ? ' pinned' : ''}`;
+    const fav  = accountMgr.isFavorite(acc.instanceId);
+    const cred = window.authMgr?.getCred(acc.instanceId);
+    el.className = `app-item${acc.opened ? ' active' : ''}${fav ? ' pinned' : ''}`;
     el.dataset.id = acc.instanceId;
     el.title = `${acc.name}${acc.label ? ' — ' + acc.label : ''}`;
+
+    const badge = cred
+      ? `<span class="auth-badge ${cred.method === 'oauth' ? 'oauth' : 'key'}">${cred.method === 'oauth' ? 'OAuth' : 'Key'}</span>`
+      : '';
 
     el.innerHTML = `
       <span class="app-icon" style="color:${acc.color}">${acc.icon}</span>
       <div class="app-info">
-        <div class="app-name">${esc(acc.name)}</div>
+        <div class="app-name">${esc(acc.name)}${badge}</div>
         <div class="app-label">${esc(acc.label || '(Standard)')}</div>
       </div>
-      <button class="app-pin-btn" title="${accountMgr.isFavorite(acc.instanceId) ? 'Aus Favoriten' : 'Zu Favoriten'}">
-        ${accountMgr.isFavorite(acc.instanceId) ? '⭐' : '☆'}
-      </button>
+      <div class="app-actions">
+        <button class="app-pin-btn" title="${fav ? 'Aus Favoriten' : 'Zu Favoriten'}">${fav ? '⭐' : '☆'}</button>
+        <button class="app-x" title="Aus Sidebar entfernen (Daten bleiben)">✕</button>
+        <button class="app-X" title="Komplett löschen (inkl. Login-Daten)">✕</button>
+      </div>
     `;
 
-    // Toggle open/close
+    // Klick auf Item → Auth-Menü (OAuth / API-Key)
     el.addEventListener('click', e => {
-      if (e.target.classList.contains('app-pin-btn')) return;
-      this.toggleApp(acc);
+      if (e.target.closest('.app-actions')) return;
+      if (acc.opened) {
+        // Schon offen → direkt anzeigen/fokussieren
+        window.api.switchCenter?.(acc.instanceId);
+        return;
+      }
+      window.authMgr?.openMenu(acc, el);
     });
 
-    // Pin
+    // ⭐ Pin
     el.querySelector('.app-pin-btn').addEventListener('click', e => {
       e.stopPropagation();
       accountMgr.toggleFavorite(acc.instanceId);
+      this.render();
+    });
+
+    // ✕ klein: aus Sidebar entfernen (Daten bleiben)
+    el.querySelector('.app-x').addEventListener('click', e => {
+      e.stopPropagation();
+      if (acc.opened) { window.dispatchEvent(new CustomEvent('app-close', { detail: acc })); }
+      accountMgr.updateInstance(acc.instanceId, { hidden: true, opened: false });
+      if (this.activeId === acc.instanceId) this.activeId = null;
+      this.render();
+    });
+
+    // ✕ groß: komplett löschen
+    el.querySelector('.app-X').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm(`"${acc.name}${acc.label ? ' — ' + acc.label : ''}" komplett löschen?\n\nInkl. gespeicherter Login-/Key-Daten.`)) return;
+      if (acc.opened) { window.dispatchEvent(new CustomEvent('app-close', { detail: acc })); }
+      window.authMgr?.forgetCred(acc.instanceId);
+      window.api.removeConnector?.(acc.instanceId);
+      accountMgr.removeInstance(acc.instanceId);
+      if (this.activeId === acc.instanceId) this.activeId = null;
       this.render();
     });
 
@@ -141,7 +175,7 @@ class LeftSidebarManager {
     nav.querySelectorAll('.tab[data-type="ai"]').forEach(t => t.remove());
 
     // AI-Accounts aus accountMgr
-    const aiAccounts = accountMgr.getByCategory('ai');
+    const aiAccounts = accountMgr.getByCategory('ai').filter(a => !a.hidden);
     aiAccounts.forEach(acc => {
       const tab = document.createElement('button');
       tab.className = `tab${acc.opened ? ' tab--active' : ''}`;

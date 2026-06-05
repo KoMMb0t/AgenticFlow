@@ -135,7 +135,9 @@ window.api.onAppReady(data => {
   accountMgr.seedFromConnectors(allConns);
 
   // Init managers
+  authMgr.init(S);
   sidebar.init();
+  taskbarMgr.init(S);
   centerMgr.init(S);
   memoryMgr.init(S);
   keyToolsMgr.init(S);
@@ -287,19 +289,61 @@ window.openAddModal = function(cat) {
           </div>
         `).join('')}
       </div>
-      <input type="text" id="add-label" placeholder="Account-Label (z.B. Privat, Arbeit)">
+      <input type="text" id="add-label" placeholder="Account-Label (z.B. Privat, Arbeit)" autocomplete="off">
+      <div id="add-suggestions"></div>
       <input type="text" id="add-url"   placeholder="Eigene URL (leer = Standard)">
       <button class="settings-btn" id="add-confirm">Hinzufügen</button>
     </div>
   `;
+
+  // Vorschläge (gespeicherte/versteckte Accounts) rendern
+  function renderSuggestions() {
+    const box = $('add-suggestions');
+    if (!box) return;
+    const query = ($('add-label')?.value || '').toLowerCase();
+    // Bekannte Accounts dieses Templates (auch versteckte)
+    const known = accountMgr.accounts.filter(a =>
+      a.templateId === selId &&
+      (!query || (a.label || '').toLowerCase().includes(query))
+    );
+    if (!known.length) { box.innerHTML = ''; return; }
+    box.innerHTML = `<div style="font-size:10px;color:var(--txt-d);margin:2px 0 4px">Bekannte Accounts (klicken zum Wiederverbinden):</div>` +
+      known.map(a => {
+        const cred = window.authMgr?.getCred(a.instanceId);
+        const badge = cred ? (cred.method === 'oauth' ? '🔓' : '🔑') : '';
+        return `<div class="kt-item" data-inst="${a.instanceId}" style="padding:6px 8px">
+          <span class="app-choice-icon" style="font-size:16px">${a.icon}</span>
+          <div class="kt-info"><div class="kt-name">${esc(a.label || '(Standard)')} ${badge}</div>
+          <div class="kt-desc">${a.hidden ? 'ausgeblendet' : 'aktiv'}</div></div>
+          <button class="kt-go">↻ Verbinden</button>
+        </div>`;
+      }).join('');
+
+    box.querySelectorAll('[data-inst]').forEach(el => {
+      el.addEventListener('click', () => {
+        const inst = el.dataset.inst;
+        const acc = accountMgr.getById(inst);
+        if (acc) {
+          accountMgr.updateInstance(inst, { hidden: false });
+          sidebar.render();
+          modal.style.display = 'none';
+          if (hdr) hdr.textContent = '⚙ Einstellungen';
+        }
+      });
+    });
+  }
 
   body.querySelectorAll('.app-choice').forEach(el => {
     el.addEventListener('click', () => {
       selId = el.dataset.id;
       body.querySelectorAll('.app-choice').forEach(x => x.classList.remove('selected'));
       el.classList.add('selected');
+      renderSuggestions();
     });
   });
+
+  $('add-label')?.addEventListener('input', renderSuggestions);
+  renderSuggestions();
 
   $('add-confirm')?.addEventListener('click', () => {
     if (!selId) return;

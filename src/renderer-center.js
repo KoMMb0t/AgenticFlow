@@ -183,10 +183,17 @@ class CenterManager {
         role: m.role, content: m.content,
       }));
 
+      // Config aus Taskbar (Rollen + Modell)
+      const cfg = window.taskbarMgr?.getActiveConfig() || {};
+      const sysPrompt = window.taskbarMgr?.buildSystemPrompt()
+        || window.AGENT_PROMPTS[this.activeAgent]
+        || window.AGENT_PROMPTS.architect;
+      const model = cfg.model || $('architect-model')?.value || 'claude-sonnet-4-6';
+
       await window.api.claudeStream(
         {
-          model:     $('architect-model')?.value || 'claude-sonnet-4-6',
-          system:    window.AGENT_PROMPTS[this.activeAgent],
+          model,
+          system:    sysPrompt,
           messages:  context,
           apiKey:    this.state.apiKeys?.claude,
         },
