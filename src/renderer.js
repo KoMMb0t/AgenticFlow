@@ -138,6 +138,7 @@ window.api.onAppReady(data => {
   sidebar.init();
   centerMgr.init(S);
   memoryMgr.init(S);
+  keyToolsMgr.init(S);
 
   // Restore active project
   if (S.activeProjectId) {
