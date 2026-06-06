@@ -315,6 +315,7 @@ window.loadNetworkInfo = async function() {
 function setupSettingsModal() {
   const modal = $('settings-modal');
   $('btn-settings')?.addEventListener('click', openSettings);
+  $('btn-bubbles')?.addEventListener('click', () => window.api.bubblesToggle?.());
   $('settings-modal-close')?.addEventListener('click', () => {
     if (modal) modal.style.display = 'none';
   });

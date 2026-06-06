@@ -3,12 +3,13 @@
  * 3-Panel: Links (Clouds/Konneктoren) | Mitte (Chat/Projekt) | Rechts (Agenten/Apps)
  */
 
-const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, shell } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, shell, screen } = require('electron');
 const path  = require('path');
 const Store = require('electron-store');
 const { registerHandlers }    = require('./claude-api');
 const { registerBleHandlers } = require('./ble');
 const startApiServer          = require('./api-server');
+const { registerBubbleHandlers, createBubbleBars } = require('./bubbles');
 
 const store = new Store({
   defaults: {
@@ -32,6 +33,7 @@ const store = new Store({
 // Register Claude API & memory handlers
 registerHandlers(store);
 registerBleHandlers(store);
+registerBubbleHandlers(store);   // AgenticBubble (Bubble-Leisten)
 
 // Start API Server (für Perplexity MCP-Konnektor)
 let apiServer = null;
@@ -99,11 +101,29 @@ let activeRightId   = store.get('activeRightId');
 let centerBounds    = null;
 let rightBounds     = null;
 
+/** Begrenzt Fenster-Bounds auf den sichtbaren Arbeitsbereich (ohne Taskleiste). */
+function fitToWorkArea(saved = {}, defWidth = 1500, defHeight = 950) {
+  const hasPos  = Number.isFinite(saved.x) && Number.isFinite(saved.y);
+  const display = hasPos
+    ? screen.getDisplayMatching({ x: saved.x, y: saved.y, width: saved.width || defWidth, height: saved.height || defHeight })
+    : screen.getPrimaryDisplay();
+  const wa = display.workArea;
+
+  const width  = Math.min(saved.width  || defWidth,  wa.width);
+  const height = Math.min(saved.height || defHeight, wa.height);
+  let x = hasPos ? saved.x : wa.x + Math.round((wa.width  - width)  / 2);
+  let y = hasPos ? saved.y : wa.y + Math.round((wa.height - height) / 2);
+  x = Math.min(Math.max(x, wa.x), wa.x + wa.width  - width);
+  y = Math.min(Math.max(y, wa.y), wa.y + wa.height - height);
+
+  return { x, y, width, height };
+}
+
 function createMainWindow() {
-  const { width, height } = store.get('windowBounds');
+  const { x, y, width, height } = fitToWorkArea(store.get('windowBounds'));
 
   mainWindow = new BrowserWindow({
-    width, height,
+    x, y, width, height,
     minWidth: 900, minHeight: 650,
     title: 'AgenticFlow',
     backgroundColor: '#09090f',
@@ -115,10 +135,28 @@ function createMainWindow() {
     },
   });
 
-  mainWindow.on('resize', () => {
+  const saveBounds = () => {
+    if (!mainWindow || mainWindow.isMaximized() || mainWindow.isFullScreen()) return;
     store.set('windowBounds', mainWindow.getBounds());
+  };
+  // Nach Verschieben/Resize: nie hinter der Taskleiste stehen lassen → zurückklemmen
+  let clampTimer = null;
+  const clampNow = () => {
+    if (!mainWindow || mainWindow.isMaximized() || mainWindow.isFullScreen()) return;
+    const cur = mainWindow.getBounds();
+    const fit = fitToWorkArea(cur, cur.width, cur.height);
+    if (fit.x !== cur.x || fit.y !== cur.y || fit.width !== cur.width || fit.height !== cur.height) {
+      mainWindow.setBounds(fit);
+    }
+    saveBounds();
+  };
+  const clampSoon = () => { clearTimeout(clampTimer); clampTimer = setTimeout(clampNow, 350); };
+  mainWindow.on('resize', () => {
+    saveBounds();
+    clampSoon();
     mainWindow.webContents.send('window-resized');
   });
+  mainWindow.on('move', clampSoon);
   mainWindow.on('closed', () => { mainWindow = null; centerViews.clear(); rightViews.clear(); });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
@@ -382,6 +420,31 @@ ipcMain.handle('launch-local-app', (_, appName) => new Promise(resolve => {
   });
 }));
 
+// ── OAuth Login-Fenster (Identity-Provider, geteilte Partition) ──
+// Öffnet ein echtes Login-Popup in der Partition des Accounts,
+// damit nach dem Login die Session auch im Connector-BrowserView gilt (SSO).
+ipcMain.handle('open-oauth-window', (_, { url, partition, title } = {}) => new Promise(resolve => {
+  if (!url) return resolve({ ok: false, error: 'keine URL' });
+  try {
+    const authBounds = fitToWorkArea({}, 520, 680);
+    const authWin = new BrowserWindow({
+      width: authBounds.width, height: authBounds.height,
+      parent: mainWindow, modal: false,
+      title: title || 'Anmelden',
+      autoHideMenuBar: true,
+      backgroundColor: '#0d0d1a',
+      webPreferences: {
+        partition: partition || undefined,   // gleiche Session wie der Connector!
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    });
+    authWin.loadURL(url).catch(() => {});
+    authWin.once('ready-to-show', () => authWin.show());
+    authWin.on('closed', () => resolve({ ok: true }));
+  } catch (e) { resolve({ ok: false, error: e.message }); }
+}));
+
 // ── MCP-Server starten (lokaler Node-Server unter /MCP/<name>) ──
 const mcpProcs = new Map(); // id -> child process
 ipcMain.handle('launch-mcp-server', (_, { id, name, port } = {}) => new Promise(resolve => {
@@ -474,6 +537,6 @@ function autoUpdateRepo() {
 
 // ── App lifecycle ────────────────────────────────────────────
 
-app.on('ready', () => { createMainWindow(); applyNetworkAccessAll(); autoUpdateRepo(); });
+app.on('ready', () => { createMainWindow(); applyNetworkAccessAll(); autoUpdateRepo(); createBubbleBars(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (!mainWindow) createMainWindow(); });

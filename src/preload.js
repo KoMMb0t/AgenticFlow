@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld('api', {
   switchCenter:  id => ipcRenderer.send('switch-center', id),
   switchRight:   id => ipcRenderer.send('switch-right',  id),
 
+  // ── AgenticBubble (Bubble-Leisten) ───────────────────
+  bubblesToggle: show => ipcRenderer.invoke('bubbles-toggle', show),
+
   // ── Panel collapse ───────────────────────────────────
   setLeftCollapsed:  v => ipcRenderer.send('set-left-collapsed',  v),
   setRightCollapsed: v => ipcRenderer.send('set-right-collapsed', v),
@@ -81,6 +84,9 @@ contextBridge.exposeInMainWorld('api', {
   // ── MCP-Server ────────────────────────────────────────
   launchMcpServer: data => ipcRenderer.invoke('launch-mcp-server', data),
   stopMcpServer:   id   => ipcRenderer.invoke('stop-mcp-server', id),
+
+  // ── OAuth Login-Fenster ───────────────────────────────
+  openOAuthWindow: data => ipcRenderer.invoke('open-oauth-window', data),
 
   // ── BLE ───────────────────────────────────────────────
   bleGetDevices:    ()          => ipcRenderer.invoke('ble-get-devices'),
