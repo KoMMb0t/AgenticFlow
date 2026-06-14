@@ -23,9 +23,6 @@ contextBridge.exposeInMainWorld('api', {
   switchCenter:  id => ipcRenderer.send('switch-center', id),
   switchRight:   id => ipcRenderer.send('switch-right',  id),
 
-  // ── AgenticBubble (Bubble-Leisten) ───────────────────
-  bubblesToggle: show => ipcRenderer.invoke('bubbles-toggle', show),
-
   // ── Panel collapse ───────────────────────────────────
   setLeftCollapsed:  v => ipcRenderer.send('set-left-collapsed',  v),
   setRightCollapsed: v => ipcRenderer.send('set-right-collapsed', v),

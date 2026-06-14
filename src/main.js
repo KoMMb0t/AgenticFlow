@@ -9,7 +9,6 @@ const Store = require('electron-store');
 const { registerHandlers }    = require('./claude-api');
 const { registerBleHandlers } = require('./ble');
 const startApiServer          = require('./api-server');
-const { registerBubbleHandlers, createBubbleBars } = require('./bubbles');
 
 const store = new Store({
   defaults: {
@@ -33,7 +32,6 @@ const store = new Store({
 // Register Claude API & memory handlers
 registerHandlers(store);
 registerBleHandlers(store);
-registerBubbleHandlers(store);   // AgenticBubble (Bubble-Leisten)
 
 // Start API Server (für Perplexity MCP-Konnektor)
 let apiServer = null;
@@ -537,6 +535,6 @@ function autoUpdateRepo() {
 
 // ── App lifecycle ────────────────────────────────────────────
 
-app.on('ready', () => { createMainWindow(); applyNetworkAccessAll(); autoUpdateRepo(); createBubbleBars(); });
+app.on('ready', () => { createMainWindow(); applyNetworkAccessAll(); autoUpdateRepo(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (!mainWindow) createMainWindow(); });
