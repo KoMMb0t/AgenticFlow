@@ -9,6 +9,7 @@ const Store = require('electron-store');
 const { registerHandlers }    = require('./claude-api');
 const { registerBleHandlers } = require('./ble');
 const startApiServer          = require('./api-server');
+const { registerPerfectMemory } = require('./perfect-memory');
 
 const store = new Store({
   defaults: {
@@ -29,8 +30,9 @@ const store = new Store({
   }
 });
 
-// Register Claude API & memory handlers
-registerHandlers(store);
+// Register Claude API & memory handlers (+ lernendes Perfect Memory)
+const perfectMemory = registerPerfectMemory(store, ipcMain);
+registerHandlers(store, perfectMemory);
 registerBleHandlers(store);
 
 // Start API Server (für Perplexity MCP-Konnektor)

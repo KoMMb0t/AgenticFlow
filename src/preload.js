@@ -27,6 +27,17 @@ contextBridge.exposeInMainWorld('api', {
   setLeftCollapsed:  v => ipcRenderer.send('set-left-collapsed',  v),
   setRightCollapsed: v => ipcRenderer.send('set-right-collapsed', v),
 
+  // ── Perfect Memory (lernend) ─────────────────────────
+  pm: {
+    add:           p       => ipcRenderer.invoke('pm-add', p),
+    recall:        (q, o)  => ipcRenderer.invoke('pm-recall', q, o),
+    recordOutcome: p       => ipcRenderer.invoke('pm-record-outcome', p),
+    suggestRoute:  (t, o)  => ipcRenderer.invoke('pm-suggest-route', t, o),
+    reinforce:     id      => ipcRenderer.invoke('pm-reinforce', id),
+    remove:        id      => ipcRenderer.invoke('pm-remove', id),
+    stats:         ()      => ipcRenderer.invoke('pm-stats'),
+  },
+
   // ── View actions ─────────────────────────────────────
   reloadView:    (panel, id) => ipcRenderer.send('reload-view',    { panel, instanceId: id }),
   logoutAccount: (panel, id) => ipcRenderer.send('logout-account', { panel, instanceId: id }),

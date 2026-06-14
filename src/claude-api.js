@@ -92,7 +92,7 @@ async function geminiChat({ messages, model, apiKey, system }) {
 
 // ── IPC Handlers ─────────────────────────────────────────────
 
-function registerHandlers(store) {
+function registerHandlers(store, pm = null) {
 
   // Single message (non-streaming) — for agent delegation etc.
   ipcMain.handle('claude-message', async (event, { agentRole, messages, model, apiKey, provider, system, maxTokens }) => {
@@ -124,6 +124,11 @@ function registerHandlers(store) {
 
   // Streaming message — sends chunks back to renderer
   ipcMain.on('claude-stream', async (event, { agentRole, messages, model, apiKey, streamId, provider, system }) => {
+    const _t0 = Date.now();
+    const _lastUser = [...(messages || [])].reverse().find(m => m.role === 'user');
+    const _task = typeof _lastUser?.content === 'string'
+      ? _lastUser.content
+      : (Array.isArray(_lastUser?.content) ? _lastUser.content.map(c => c.text || '').join(' ') : '');
     try {
       const systemPromptAlt = system || AGENT_PROMPTS[agentRole] || AGENT_PROMPTS.architect;
 
@@ -133,6 +138,7 @@ function registerHandlers(store) {
         const r  = await fn({ messages, model, apiKey, system: systemPromptAlt });
         event.sender.send(`claude-stream-chunk:${streamId}`, { text: r.text });
         event.sender.send(`claude-stream-done:${streamId}`,  { usage: r.usage, stopReason: 'end' });
+        pm?.recordOutcome({ task: _task, provider, model, success: true, durationMs: Date.now() - _t0 });
         return;
       }
 
@@ -157,10 +163,12 @@ function registerHandlers(store) {
             usage: finalMsg.usage,
             stopReason: finalMsg.stop_reason,
           });
+          pm?.recordOutcome({ task: _task, provider: provider || 'claude', model, success: true, durationMs: Date.now() - _t0 });
         }
       }
     } catch (err) {
       event.sender.send(`claude-stream-error:${streamId}`, { error: err.message });
+      pm?.recordOutcome({ task: _task, provider: provider || 'claude', model, success: false, durationMs: Date.now() - _t0 });
     }
   });
 
