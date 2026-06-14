@@ -1,8 +1,0 @@
-{
-  "service": "AgenticFlow",
-  "port": 3001,
-  "baseUrl": "http://localhost:3001",
-  "pid": 98748,
-  "startPort": 3001,
-  "updatedAt": "2026-06-05T20:09:21.753Z"
-}

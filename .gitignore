@@ -13,3 +13,7 @@ secrets/
 /AgenticFlow/
 # Alte Icon-Backups
 assets/backup_old_icons/
+
+# Laufzeit-/Status-Dateien (nicht committen)
+MCP/_runtime/agentic-flow.json
+tools/doc-watch.state
