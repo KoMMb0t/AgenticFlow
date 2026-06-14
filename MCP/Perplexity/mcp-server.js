@@ -9,10 +9,8 @@
  * AgenticFlow läuft auf localhost:3001 und wird über HTTP angesprochen.
  */
 
-import {
-  Server,
-  StdioServerTransport,
-} from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 import * as fs from 'fs';
@@ -374,10 +372,10 @@ async function handleToolCall(toolName, toolInput) {
 }
 
 // ── MCP Server ───────────────────────────────────────────
-const server = new Server({
-  name: 'AgenticFlow MCP Server',
-  version: '1.0.0',
-});
+const server = new Server(
+  { name: 'AgenticFlow MCP Server', version: '1.0.0' },
+  { capabilities: { tools: {} } }
+);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const tools = generateTools();
@@ -387,7 +385,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name: toolName, arguments: toolInput } = request.params;
-  return await handleToolCall(toolName, toolInput || {});
+  const result = await handleToolCall(toolName, toolInput || {});
+  // MCP-Standard: Ergebnis muss als content-Array zurückkommen
+  return { content: [result] };
 });
 
 server.onerror = (error) => {

@@ -6,7 +6,8 @@
  * Tools: list_repos, create_issue, list_pulls, merge_pr, etc.
  */
 
-import { Server, StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 import * as fs from 'fs';
@@ -128,15 +129,17 @@ async function handleToolCall(toolName, toolInput) {
   }
 }
 
-const server = new Server({
-  name: 'GitHub MCP Server',
-  version: '1.0.0',
-});
+const server = new Server(
+  { name: 'GitHub MCP Server', version: '1.0.0' },
+  { capabilities: { tools: {} } }
+);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: generateTools() }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  return await handleToolCall(name, args || {});
+  const result = await handleToolCall(name, args || {});
+  // MCP-Standard: Ergebnis muss als content-Array zurückkommen
+  return { content: [result] };
 });
 
 server.onerror = (error) => console.error('[MCP] Error:', error);

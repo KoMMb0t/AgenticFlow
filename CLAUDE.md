@@ -7,6 +7,9 @@ Electron Desktop App (Windows/Linux/Android) — Multi-Agent Hub mit Claude API,
 - AgenticFlow Desktop: https://github.com/KoMMb0t/AgenticFlow
 - AgenticFlow Web (Base44): https://github.com/KoMMb0t/agenticflow-web
 - KoMM Dashboard (Base44): https://github.com/KoMMb0t/komm-dashboard
+- AgenticBubbleAgent (privat): Bubble-Leisten-Code (lokale AgenticFlow-Erweiterung) — `C:\Users\ModBot\GitHub\AgenticBubbleAgent`
+- AgenticWebBubble (privat): Chrome-MV3-Addon-Variante — `C:\Users\ModBot\GitHub\AgenticWebBubble`
+- **Alle GitHub-Repos lokal geklont in `C:\Users\ModBot\GitHub\`** (34 Repos inkl. aller privaten, Stand 2026-06-06; GitHub Desktop ist mit KoMMb0t angemeldet)
 
 ## 🏗 Stack
 - Electron 28 + electron-store + electron-builder
@@ -103,9 +106,24 @@ assets/
 7. ✅ Network Access Toggle — blockt Requests via session.webRequest
 8. ⏳ Auf GitHub pushen — bitte MANUELL via GitHub Desktop (nicht aus der Cowork-Sandbox committen!)
 
+## ✅ ERLEDIGT (2026-06-06)
+9. ✅ Fenster-Fix: `fitToWorkArea()` in main.js — Fenster bleiben im Arbeitsbereich
+   (nie mehr hinter der Taskleiste), Position wird gespeichert + geklemmt (resize/move)
+10. ✅ **AgenticBubble integriert** (lokale Erweiterung, NICHT als Chrome-Addon):
+   - `src/bubbles.js` — Main: Bubble-/Gruppen-CRUD (electron-store), Engine-Router
+     (claude/ollama/perplexity/openrouter), frameless Always-on-Top-Fenster pro Gruppe,
+     links/rechts andockbar (Snap ≤24px) oder frei positionierbar
+   - `src/bubblebar.html/.js` + `src/preload-bubbles.js` — Leisten-UI: Bubble-Stack,
+     Chat-Panel, Editor (Rechtsklick auf Bubble), Schnellaktionen, Dock-Wechsel ⇄
+   - Header-Button 🫧 (index.html + renderer.js) → `window.api.bubblesToggle()`
+   - Handover-Quelle: `C:\Users\ModBot\AgenticBubble\CLAUDE_HANDOVER.md`
+   - Metaprompt: METAPROMPTS.md §4
+
 ## ❌ NOCH OFFEN
 - Echte OAuth-Flows pro Dienst (Auth-Menü merkt bisher nur die Methode)
 - electron-builder Release-Build testen
+- Bubbles: Streaming, Konnektor-/Makro-Engines (Handover §7), Keys für
+  perplexity/openrouter in den Einstellungen pflegen (Store: `apiKeys.<service>`)
 
 ## 🧠 Metaprompts (KI-Instanzen)
 - Alle Metaprompts für orchestrierte KI-Instanzen stehen in **`METAPROMPTS.md`**
@@ -135,10 +153,16 @@ assets/
   `claude mcp add agenticflow -- node "C:\Users\ModBot\AgenticFlow\MCP\Perplexity\mcp-server.js"`.
 - **claude.ai (Web):** kann **kein** localhost — entweder Custom Connector via Tunnel
   (`cloudflared tunnel --url http://localhost:3001`) **oder** datei-basiert über kDrive.
-- **Cloud-Ablage:** Austausch-/Doc-Tasks **primär auf kDrive** (ENV `AGENTICFLOW_TASKS_DIR`),
-  **Backups auf die anderen Clouds** (OneDrive …) via `tools/backup-tasks.ps1`
-  (ENV `AGENTICFLOW_BACKUP_DIRS`, ";"-getrennt).
-  > ⚠️ kDrive-Desktop-Client ist aktuell **nicht installiert** — bis dahin Primär = lokal, Backup = OneDrive.
+- **Cloud-Ablage (aktueller Stand):**
+  - **Lokal primär:** `MCP/Manus/tasks` (überschreibbar via ENV `AGENTICFLOW_TASKS_DIR`)
+  - **Auto-Backup:** OneDrive `OneDrive\AgenticFlow-Backup\tasks` (`tools/backup-tasks.ps1`, läuft automatisch)
+  - **Geteilte Cloud-Inbox:** Google Drive › **AgenticFlow-Tasks**
+    (`https://drive.google.com/drive/folders/1Xv8SBuQNDDja3gzooIOs5YEdMvkScwVz`, Konto `kommuniverse@gmail.com`)
+    — für agentenübergreifenden Zugriff (claude.ai / Manus, die Google Drive lesen können).
+  > ⚠️ **Automatik:** Skript schreibt lokal **+ OneDrive automatisch**. Google Drive wird **on-demand**
+  >   von Claude/Agenten gespiegelt (der MCP-Drive-Connector ist Agenten verfügbar, NICHT dem PowerShell-Task).
+  >   Für echten Auto-Drive-Sync später: rclone oder „Google Drive für Desktop".
+  > ⚠️ **kDrive:** installiert, aber Sync (Laufwerk + lokaler Ordner) noch **nicht eingerichtet** (Konto klären).
 
 ## 🔑 Regeln
 - API-Keys NIEMALS committen

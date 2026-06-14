@@ -97,6 +97,43 @@ Jeden Server mit einem `health_check` Tool ausstatten:
 }
 ```
 
+### ⚠️ Server-Skelett (Pflicht-Boilerplate — exakt so!)
+> Diese drei Stellen sind die häufigsten Crash-Ursachen. **Genau so übernehmen**, nicht abwandeln.
+> (SDK ab `@modelcontextprotocol/sdk` v1.x)
+
+```javascript
+// 1) IMPORTS — Server und Transport kommen aus VERSCHIEDENEN Pfaden!
+//    NICHT beide aus server/stdio.js importieren → "does not provide an export named 'Server'"
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+
+// 2) SERVER — Capabilities deklarieren, sonst "Server does not support tools"
+const server = new Server(
+  { name: config.server.name, version: config.server.version },
+  { capabilities: { tools: {} } }
+);
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: generateTools() }));
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+  const result = await handleToolCall(name, args || {});
+  // 3) RESULT — MCP verlangt ein content-Array, KEIN nacktes { type, text }
+  return { content: [result] };  // result = { type: 'text', text: '…' }
+});
+
+server.onerror = (error) => console.error('[MCP] Error:', error);
+process.on('SIGINT', () => { console.error('[MCP] Shutdown'); process.exit(0); });
+
+const transport = new StdioServerTransport();
+server.connect(transport).catch(console.error);
+console.error('[MCP] Server gestartet');
+```
+
+> **Merksatz:** Die einzelnen `handleToolCall`-Returns liefern weiterhin `{ type: 'text', text }`.
+> Nur der `CallToolRequestSchema`-Handler wrappt das **einmal** in `{ content: [result] }`.
+
 ---
 
 ## 🔧 Workflow: Von der Anfrage zum Live-Server
@@ -161,10 +198,17 @@ Jeden Server mit einem `health_check` Tool ausstatten:
 1. **Lokal starten & testen**
    ```bash
    npm install
-   npm start
+   node --check mcp-server.js   # Syntax
+   npm start                    # läuft per stdio
    ```
 
-2. **Jeden Tool manuell testen**
+2. **MCP-Handshake-Test (Pflicht!)** — fängt die 3 Boilerplate-Bugs ab.
+   Sende per stdio JSON-RPC `initialize` → `notifications/initialized` → `tools/list` →
+   `tools/call {name:'health_check'}`. Erwartung:
+   - `tools/list` liefert die Tool-Namen (kein „Server does not support tools")
+   - `health_check` liefert `{"content":[{"type":"text","text":"…"}]}` (kein Crash, graceful ohne Token)
+
+3. **Jeden Tool manuell testen**
    - Mit echten API-Calls (falls public)
    - Mit Mocks (falls Auth/Quota)
 
@@ -226,6 +270,10 @@ Wenn der Nutzer diese Services fragt, nutze diese APIs:
 ❌ **Zu viele Tools** → MVP first (3-5), später erweitern
 ❌ **Keine Tests** → Mindestens Health-Check
 ❌ **Config im Code** → Alles in `config.json`
+❌ **`Server` aus `server/stdio.js` importieren** → kommt aus `server/index.js` (siehe Skelett)
+❌ **`new Server({...})` ohne Capabilities** → `{ capabilities: { tools: {} } }` als 2. Argument
+❌ **CallTool gibt `{ type, text }` zurück** → muss `{ content: [ { type, text } ] }` sein
+❌ **`type: "module"` in package.json vergessen** → ESM-Imports brechen sonst
 
 ---
 
@@ -343,9 +391,10 @@ Notion-Integration zu Perplexity-MCP hinzugefügt!
 ## 🎯 Erfolgs-Kriterium
 
 Ein Server ist **fertig**, wenn:
-- ✅ `npm install` läuft
+- ✅ `npm install` läuft + `node --check mcp-server.js` ist sauber
 - ✅ `npm start` zeigt "[MCP] Server gestartet"
-- ✅ Health-Check erfolgreich
+- ✅ MCP-Handshake-Test besteht: `tools/list` listet Tools, `health_check` gibt `{ content: [...] }` zurück
+- ✅ Health-Check erfolgreich (graceful ohne Token)
 - ✅ Mindestens 3 Tools funktionieren (mit echten API-Calls oder Mocks)
 - ✅ README vollständig
 - ✅ .env.example hat alle nötigen Variablen
