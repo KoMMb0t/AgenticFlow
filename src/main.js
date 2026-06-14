@@ -380,6 +380,27 @@ ipcMain.on('clear-chat-history', () => store.set('chatHistory', []));
 // Open URL in default system browser (for API key pages)
 ipcMain.on('open-external', (_, url) => shell.openExternal(url).catch(() => {}));
 
+// ── AgenticBubble (eigenständige Desktop-App) starten/stoppen ─
+let agenticBubbleProc = null;
+ipcMain.handle('agenticbubble-toggle', () => {
+  if (agenticBubbleProc && !agenticBubbleProc.killed) {
+    try { agenticBubbleProc.kill(); } catch {}
+    agenticBubbleProc = null;
+    return { running: false };
+  }
+  const { spawn } = require('child_process');
+  const fs = require('fs');
+  const dir = path.join('C:', 'Users', 'ModBot', 'GitHub', 'AgenticBubble');
+  const exe = path.join(dir, 'node_modules', 'electron', 'dist', 'electron.exe');
+  if (!fs.existsSync(exe)) return { running: false, error: 'AgenticBubble nicht installiert (npm install im AgenticBubble-Ordner fehlt).' };
+  try {
+    agenticBubbleProc = spawn(exe, ['.', '--disable-gpu'], { cwd: dir, windowsHide: false, stdio: 'ignore' });
+    agenticBubbleProc.on('exit', () => { agenticBubbleProc = null; });
+    return { running: true };
+  } catch (e) { return { running: false, error: e.message }; }
+});
+app.on('before-quit', () => { try { agenticBubbleProc?.kill(); } catch {} });
+
 // ── Netzwerk-Freigabe (Netzgabe-Toggle) ──────────────────────
 // false = alle Konnektor-BrowserViews werden vom Netz getrennt.
 function applyNetworkAccessToPartition(partition) {

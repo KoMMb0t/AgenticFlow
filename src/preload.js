@@ -83,6 +83,9 @@ contextBridge.exposeInMainWorld('api', {
   // ── Open URL in system browser ───────────────────────
   openExternal: url => ipcRenderer.send('open-external', url),
 
+  // ── AgenticBubble (eigenständige App) ein/aus ────────
+  agenticBubbleToggle: () => ipcRenderer.invoke('agenticbubble-toggle'),
+
   // ── Local network ─────────────────────────────────────
   getWifiInfo:    () => ipcRenderer.invoke('get-wifi-info'),
   scanNetwork:    () => ipcRenderer.invoke('scan-network'),

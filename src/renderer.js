@@ -315,6 +315,15 @@ window.loadNetworkInfo = async function() {
 function setupSettingsModal() {
   const modal = $('settings-modal');
   $('btn-settings')?.addEventListener('click', openSettings);
+  $('btn-agenticbubble')?.addEventListener('click', async () => {
+    const r = await window.api.agenticBubbleToggle?.();
+    const btn = $('btn-agenticbubble');
+    if (btn && r) {
+      btn.classList.toggle('active', !!r.running);
+      btn.title = r.running ? 'AgenticBubble läuft — klicken zum Stoppen' : 'AgenticBubble ein/aus';
+      if (r.error) btn.title = 'AgenticBubble: ' + r.error;
+    }
+  });
   $('settings-modal-close')?.addEventListener('click', () => {
     if (modal) modal.style.display = 'none';
   });
